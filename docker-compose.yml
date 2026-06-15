@@ -1,0 +1,35 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: financedash-postgres
+    environment:
+      POSTGRES_DB: financedash
+      POSTGRES_USER: financedash
+      POSTGRES_PASSWORD: financedash
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U financedash -d financedash"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: financedash-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/financedash
+      DATABASE_USERNAME: financedash
+      DATABASE_PASSWORD: financedash
+      SERVER_PORT: 8080
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres_data:
+

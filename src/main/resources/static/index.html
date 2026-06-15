@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinanceDash</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header class="app-header">
+        <div>
+            <p class="eyebrow">FinanceDash MVP</p>
+            <h1>Dashboard financeiro</h1>
+            <p class="subtitle">Controle receitas, despesas, categorias e metas em uma visão mensal.</p>
+        </div>
+        <div class="period-filter" aria-label="Filtro de período">
+            <label for="month">Mês</label>
+            <select id="month"></select>
+            <label for="year">Ano</label>
+            <input id="year" type="number" min="1900" max="2999">
+            <button id="reload-dashboard" type="button">Atualizar</button>
+        </div>
+    </header>
+
+    <main class="layout">
+        <section class="cards" aria-label="Resumo mensal">
+            <article class="card income">
+                <span>Receitas</span>
+                <strong id="total-income">R$ 0,00</strong>
+                <small id="income-count">0 lançamentos</small>
+            </article>
+            <article class="card expense">
+                <span>Despesas</span>
+                <strong id="total-expense">R$ 0,00</strong>
+                <small id="expense-count">0 lançamentos</small>
+            </article>
+            <article class="card balance">
+                <span>Saldo</span>
+                <strong id="balance">R$ 0,00</strong>
+                <small id="transaction-count">0 lançamentos no mês</small>
+            </article>
+        </section>
+
+        <section class="grid two-columns">
+            <article class="panel">
+                <div class="panel-header">
+                    <h2>Despesas por categoria</h2>
+                    <span id="expense-period"></span>
+                </div>
+                <canvas id="expenses-chart" height="220"></canvas>
+            </article>
+            <article class="panel">
+                <div class="panel-header">
+                    <h2>Receitas por categoria</h2>
+                    <span id="income-period"></span>
+                </div>
+                <canvas id="incomes-chart" height="220"></canvas>
+            </article>
+        </section>
+
+        <section class="grid two-columns align-start">
+            <article class="panel">
+                <div class="panel-header">
+                    <h2>Novo lançamento</h2>
+                    <span>Receita ou despesa</span>
+                </div>
+                <form id="transaction-form" class="form">
+                    <input id="transaction-id" name="transactionId" type="hidden">
+                    <label>
+                        Descrição
+                        <input name="description" type="text" placeholder="Ex.: Projeto website" required>
+                    </label>
+                    <label>
+                        Valor
+                        <input name="amount" type="number" min="0.01" step="0.01" placeholder="0.00" required>
+                    </label>
+                    <label>
+                        Tipo
+                        <select name="type" id="transaction-type" required>
+                            <option value="INCOME">Receita</option>
+                            <option value="EXPENSE">Despesa</option>
+                        </select>
+                    </label>
+                    <label>
+                        Categoria
+                        <select name="categoryId" id="transaction-category" required></select>
+                    </label>
+                    <label>
+                        Data
+                        <input name="transactionDate" type="date" required>
+                    </label>
+                    <label>
+                        Método de pagamento
+                        <input name="paymentMethod" type="text" placeholder="PIX, Cartão, Dinheiro">
+                    </label>
+                    <label class="full-width">
+                        Observações
+                        <textarea name="notes" rows="3" placeholder="Detalhes opcionais"></textarea>
+                    </label>
+                    <button id="transaction-submit" type="submit">Salvar lançamento</button>
+                    <button id="transaction-cancel" class="button-secondary hidden" type="button">Cancelar edição</button>
+                    <p id="transaction-feedback" class="feedback" role="status"></p>
+                </form>
+            </article>
+
+            <article class="panel">
+                <div class="panel-header">
+                    <h2>Lançamentos recentes</h2>
+                    <span id="transactions-total">0 registros</span>
+                </div>
+                <form id="transaction-filters" class="filters" aria-label="Filtros de lançamentos">
+                    <label>
+                        Tipo
+                        <select id="transaction-filter-type" name="type">
+                            <option value="">Todos</option>
+                            <option value="INCOME">Receitas</option>
+                            <option value="EXPENSE">Despesas</option>
+                        </select>
+                    </label>
+                    <label>
+                        Categoria
+                        <select id="transaction-filter-category" name="categoryId"></select>
+                    </label>
+                    <label>
+                        Registros
+                        <select name="size">
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                            <option value="50">50</option>
+                        </select>
+                    </label>
+                    <label>
+                        Ordenar
+                        <select name="sort">
+                            <option value="transactionDate,desc">Mais recentes</option>
+                            <option value="transactionDate,asc">Mais antigos</option>
+                            <option value="amount,desc">Maior valor</option>
+                            <option value="amount,asc">Menor valor</option>
+                        </select>
+                    </label>
+                    <button type="submit">Aplicar filtros</button>
+                    <button id="transaction-filters-reset" class="button-secondary" type="button">Limpar</button>
+                </form>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Descrição</th>
+                                <th>Categoria</th>
+                                <th>Tipo</th>
+                                <th>Valor</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactions-table"></tbody>
+                    </table>
+                </div>
+            </article>
+        </section>
+
+        <section class="grid two-columns align-start">
+            <article class="panel">
+                <div class="panel-header">
+                    <h2>Categorias</h2>
+                    <span>Organize receitas e despesas</span>
+                </div>
+                <form id="category-form" class="form compact-form">
+                    <input id="category-id" name="categoryId" type="hidden">
+                    <label>
+                        Nome
+                        <input name="name" type="text" placeholder="Ex.: Assinaturas" required>
+                    </label>
+                    <label>
+                        Tipo
+                        <select name="type" required>
+                            <option value="INCOME">Receita</option>
+                            <option value="EXPENSE">Despesa</option>
+                        </select>
+                    </label>
+                    <label>
+                        Cor
+                        <input name="color" type="color" value="#38bdf8" required>
+                    </label>
+                    <button id="category-submit" type="submit">Salvar categoria</button>
+                    <button id="category-cancel" class="button-secondary hidden" type="button">Cancelar edição</button>
+                    <p id="category-feedback" class="feedback" role="status"></p>
+                </form>
+                <div id="categories-list" class="stack-list"></div>
+            </article>
+
+            <article class="panel">
+                <div class="panel-header">
+                    <h2>Nova meta</h2>
+                    <span>Receita, despesa ou economia</span>
+                </div>
+                <form id="goal-form" class="form compact-form">
+                    <input id="goal-id" name="goalId" type="hidden">
+                    <label class="full-width">
+                        Título
+                        <input name="title" type="text" placeholder="Ex.: Economizar para reserva" required>
+                    </label>
+                    <label>
+                        Mês
+                        <input name="month" type="number" min="1" max="12" required>
+                    </label>
+                    <label>
+                        Ano
+                        <input name="year" type="number" min="1900" max="2999" required>
+                    </label>
+                    <label>
+                        Valor alvo
+                        <input name="targetAmount" type="number" min="0.01" step="0.01" placeholder="0.00" required>
+                    </label>
+                    <label>
+                        Tipo
+                        <select id="goal-type" name="type" required>
+                            <option value="SAVINGS_TARGET">Economia</option>
+                            <option value="INCOME_TARGET">Meta de receita</option>
+                            <option value="EXPENSE_LIMIT">Limite de despesa</option>
+                        </select>
+                    </label>
+                    <label class="full-width">
+                        Categoria
+                        <select id="goal-category" name="categoryId"></select>
+                    </label>
+                    <button id="goal-submit" type="submit">Salvar meta</button>
+                    <button id="goal-cancel" class="button-secondary hidden" type="button">Cancelar edição</button>
+                    <p id="goal-feedback" class="feedback" role="status"></p>
+                </form>
+            </article>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <h2>Metas do mês</h2>
+                <span>Progresso calculado automaticamente</span>
+            </div>
+            <div id="goals-list" class="goals-list"></div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="confirm-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+        <div class="modal-card">
+            <h2 id="confirm-modal-title">Confirmar ação</h2>
+            <p id="confirm-modal-message" class="subtitle"></p>
+            <div class="modal-actions">
+                <button id="confirm-modal-cancel" class="button-secondary" type="button">Cancelar</button>
+                <button id="confirm-modal-confirm" type="button">Confirmar</button>
+            </div>
+        </div>
+    </div>
+    <div id="transaction-edit-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="transaction-edit-title">
+        <div class="modal-card wide">
+            <h2 id="transaction-edit-title">Editar lançamento</h2>
+            <form id="transaction-edit-form" class="form">
+                <input name="transactionId" type="hidden">
+                <label>
+                    Descrição
+                    <input name="description" type="text" required>
+                </label>
+                <label>
+                    Valor
+                    <input name="amount" type="number" min="0.01" step="0.01" required>
+                </label>
+                <label>
+                    Tipo
+                    <select name="type" id="transaction-edit-type" required>
+                        <option value="INCOME">Receita</option>
+                        <option value="EXPENSE">Despesa</option>
+                    </select>
+                </label>
+                <label>
+                    Categoria
+                    <select name="categoryId" id="transaction-edit-category" required></select>
+                </label>
+                <label>
+                    Data
+                    <input name="transactionDate" type="date" required>
+                </label>
+                <label>
+                    Método de pagamento
+                    <input name="paymentMethod" type="text">
+                </label>
+                <label class="full-width">
+                    Observações
+                    <textarea name="notes" rows="3"></textarea>
+                </label>
+                <button id="transaction-edit-submit" type="submit">Salvar edição</button>
+                <button id="transaction-edit-cancel" class="button-secondary" type="button">Cancelar</button>
+                <p id="transaction-edit-feedback" class="feedback" role="status"></p>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/categories.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/transactions.js"></script>
+    <script src="js/goals.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
+

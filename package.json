@@ -1,0 +1,15 @@
+{
+  "name": "finance-dash",
+  "version": "1.0.0",
+  "description": "FinanceDash é um MVP de dashboard financeiro para freelancers, MEIs e pequenos negócios controlarem receitas, despesas, saldo mensal, categorias e metas financeiras.",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.61.0"
+  }
+}

@@ -1,0 +1,6 @@
+com\sanoli\financedash\controller\TransactionControllerTest.class
+com\sanoli\financedash\controller\GoalControllerTest.class
+com\sanoli\financedash\service\DashboardServiceTest.class
+com\sanoli\financedash\service\GoalServiceTest.class
+com\sanoli\financedash\service\CategoryServiceTest.class
+com\sanoli\financedash\service\TransactionServiceTest.class

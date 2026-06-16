@@ -167,12 +167,22 @@ textarea:focus {
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.insights-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .two-columns {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .align-start {
     align-items: start;
+}
+
+.charts-grid {
+    align-items: stretch;
 }
 
 .card,
@@ -214,6 +224,34 @@ textarea:focus {
 .card.expense strong { color: var(--expense); }
 .card.balance strong { color: var(--accent); }
 
+.insight-card {
+    background: rgba(2, 6, 23, 0.34);
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 18px;
+    display: grid;
+    gap: 0.38rem;
+    padding: 1rem;
+}
+
+.insight-card span,
+.insight-card small {
+    color: var(--muted);
+}
+
+.insight-card strong {
+    color: var(--text);
+    font-size: clamp(1.1rem, 2vw, 1.55rem);
+    line-height: 1.1;
+}
+
+.insight-card.positive strong {
+    color: var(--income);
+}
+
+.insight-card.negative strong {
+    color: var(--expense);
+}
+
 .panel {
     padding: 1.25rem;
 }
@@ -224,6 +262,28 @@ textarea:focus {
     justify-content: space-between;
     gap: 1rem;
     margin-bottom: 1rem;
+}
+
+.chart-panel {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-height: 280px;
+}
+
+.chart-expand {
+    flex: 0 0 auto;
+    padding: 0.55rem 0.8rem;
+}
+
+.chart-shell {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    min-height: 170px;
+}
+
+.chart-shell canvas {
+    max-height: 170px;
 }
 
 .form {
@@ -261,9 +321,10 @@ textarea:focus {
 .filters {
     align-items: end;
     display: grid;
-    gap: 0.75rem;
+    column-gap: 0.75rem;
+    row-gap: 1rem;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin-bottom: 1rem;
+    margin-bottom: 1.2rem;
 }
 
 .filters label {
@@ -272,6 +333,15 @@ textarea:focus {
     font-size: 0.84rem;
     font-weight: 700;
     gap: 0.35rem;
+}
+
+.filter-actions {
+    border-top: 1px solid rgba(148, 163, 184, 0.12);
+    display: flex;
+    gap: 0.75rem;
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+    padding-top: 0.9rem;
 }
 
 .table-wrapper {
@@ -431,12 +501,13 @@ th {
 }
 
 .modal {
-    align-items: center;
+    align-items: flex-start;
     background: rgba(2, 6, 23, 0.72);
     display: none;
     inset: 0;
     justify-content: center;
-    padding: 1rem;
+    overflow-y: auto;
+    padding: clamp(1rem, 5vh, 3rem) 1rem;
     position: fixed;
     z-index: 30;
 }
@@ -456,8 +527,71 @@ th {
 }
 
 .modal-card.wide {
-    max-width: 760px;
-    width: min(100%, 760px);
+    max-width: 720px;
+    width: min(100%, 720px);
+}
+
+.chart-modal-card {
+    max-width: 860px;
+    width: min(100%, 860px);
+}
+
+.modal-header {
+    align-items: flex-start;
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.modal-header h2 {
+    margin-bottom: 0.35rem;
+}
+
+.icon-button {
+    align-items: center;
+    background: rgba(148, 163, 184, 0.12);
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: 1.25rem;
+    height: 2.25rem;
+    justify-content: center;
+    padding: 0;
+    width: 2.25rem;
+}
+
+.modal-form {
+    background: rgba(2, 6, 23, 0.28);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 16px;
+    padding: 1rem;
+}
+
+.expanded-chart-shell {
+    align-items: center;
+    background: rgba(2, 6, 23, 0.28);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    border-radius: 16px;
+    display: flex;
+    justify-content: center;
+    min-height: 420px;
+    padding: 1rem;
+}
+
+.expanded-chart-shell canvas {
+    max-height: 420px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 0.75rem;
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+}
+
+.form-actions button {
+    grid-column: auto;
+    min-width: 150px;
 }
 
 .modal-actions {
@@ -475,6 +609,7 @@ th {
 
     .period-filter,
     .cards,
+    .insights-grid,
     .two-columns {
         grid-template-columns: 1fr;
     }
@@ -500,6 +635,15 @@ th {
 
     .modal-actions {
         flex-direction: column-reverse;
+    }
+
+    .filter-actions,
+    .form-actions {
+        flex-direction: column-reverse;
+    }
+
+    .form-actions button {
+        width: 100%;
     }
 }
 

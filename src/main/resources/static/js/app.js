@@ -40,6 +40,7 @@ const FinanceDashApp = (() => {
         FinanceDashCategories.bindEvents(refresh);
         FinanceDashTransactions.bindEvents(refresh);
         FinanceDashGoals.bindEvents(refresh, getSelectedPeriod);
+        FinanceDashDashboard.bindEvents();
         document.getElementById("reload-dashboard").addEventListener("click", async () => {
             const button = document.getElementById("reload-dashboard");
             try {

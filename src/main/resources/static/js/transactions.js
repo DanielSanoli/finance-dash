@@ -97,12 +97,12 @@ const FinanceDashTransactions = (() => {
             }
         });
 
-        document.getElementById("transaction-cancel")?.addEventListener("click", resetForm);
         document.getElementById("transactions-table")?.addEventListener("click", handleTableClick);
         document.getElementById("transaction-filters")?.addEventListener("submit", handleFilterSubmit);
         document.getElementById("transaction-filters-reset")?.addEventListener("click", handleFilterReset);
         document.getElementById("transaction-edit-form")?.addEventListener("submit", handleEditSubmit);
         document.getElementById("transaction-edit-cancel")?.addEventListener("click", closeEditModal);
+        document.getElementById("transaction-edit-close")?.addEventListener("click", closeEditModal);
         document.getElementById("transaction-edit-type")?.addEventListener("change", () => renderEditCategoryOptions());
         document.getElementById("transaction-edit-modal")?.addEventListener("click", (event) => {
             if (event.target.id === "transaction-edit-modal") {
@@ -122,12 +122,10 @@ const FinanceDashTransactions = (() => {
         const form = document.getElementById("transaction-form");
         const idInput = document.getElementById("transaction-id");
         const submitButton = document.getElementById("transaction-submit");
-        const cancelButton = document.getElementById("transaction-cancel");
 
         form?.reset();
         if (idInput) idInput.value = "";
         if (submitButton) submitButton.textContent = "Salvar lançamento";
-        cancelButton?.classList.add("hidden");
         setDefaultDate();
         FinanceDashCategories.renderTransactionCategoryOptions();
     }

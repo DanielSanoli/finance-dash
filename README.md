@@ -290,6 +290,28 @@ Para parar e remover o volume do banco:
 docker compose down -v
 ```
 
+## Deploy no Railway
+
+O projeto pode ser publicado no Railway usando o `Dockerfile` da raiz. Crie um serviço PostgreSQL no Railway e configure as variáveis do serviço da aplicação.
+
+Opção recomendada, usando a URL padrão do Railway:
+
+```text
+DATABASE_URL=${{Postgres.DATABASE_URL}}
+SERVER_PORT=${{PORT}}
+```
+
+O app converte automaticamente URLs `postgres://` ou `postgresql://` para o formato JDBC exigido pelo Spring (`jdbc:postgresql://...`). Se preferir configurar manualmente, também funciona:
+
+```text
+DATABASE_URL=jdbc:postgresql://${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}
+DATABASE_USERNAME=${{Postgres.PGUSER}}
+DATABASE_PASSWORD=${{Postgres.PGPASSWORD}}
+SERVER_PORT=${{PORT}}
+```
+
+Se o deploy falhar com erro de Hibernate `Unable to determine Dialect`, normalmente a variável `DATABASE_URL` está ausente, vazia ou apontando para uma referência de serviço incorreta no Railway.
+
 ## Swagger/OpenAPI
 
 A documentação da API fica disponível em:

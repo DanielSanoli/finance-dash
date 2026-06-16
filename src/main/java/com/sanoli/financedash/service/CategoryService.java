@@ -6,6 +6,7 @@ import com.sanoli.financedash.dto.CategoryResponse;
 import com.sanoli.financedash.exception.BusinessException;
 import com.sanoli.financedash.exception.ResourceNotFoundException;
 import com.sanoli.financedash.repository.CategoryRepository;
+import com.sanoli.financedash.security.CurrentUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,9 +17,11 @@ import java.util.UUID;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final CurrentUserService currentUserService;
 
-    public CategoryService(CategoryRepository categoryRepository) {
+    public CategoryService(CategoryRepository categoryRepository, CurrentUserService currentUserService) {
         this.categoryRepository = categoryRepository;
+        this.currentUserService = currentUserService;
     }
 
     @Transactional
@@ -26,13 +29,14 @@ public class CategoryService {
         validateUniqueName(request.name(), null);
 
         Category category = new Category();
+        category.setUser(currentUserService.getCurrentUser());
         applyRequest(category, request);
         return CategoryResponse.fromEntity(categoryRepository.save(category));
     }
 
     @Transactional(readOnly = true)
     public List<CategoryResponse> findAll() {
-        return categoryRepository.findAllByActiveTrueOrderByNameAsc()
+        return categoryRepository.findAllByUserIdAndActiveTrueOrderByNameAsc(currentUserService.getCurrentUserId())
                 .stream()
                 .map(CategoryResponse::fromEntity)
                 .toList();
@@ -59,7 +63,7 @@ public class CategoryService {
     }
 
     private Category findActiveEntityById(UUID id) {
-        Category category = categoryRepository.findById(id)
+        Category category = categoryRepository.findByIdAndUserId(id, currentUserService.getCurrentUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category não encontrada: " + id));
 
         if (!category.isActive()) {
@@ -70,7 +74,7 @@ public class CategoryService {
     }
 
     private void validateUniqueName(String name, UUID currentId) {
-        categoryRepository.findByNameIgnoreCase(name.trim())
+        categoryRepository.findByUserIdAndNameIgnoreCase(currentUserService.getCurrentUserId(), name.trim())
                 .filter(category -> currentId == null || !category.getId().equals(currentId))
                 .ifPresent(category -> {
                     throw new BusinessException("Já existe uma category com o nome: " + name);

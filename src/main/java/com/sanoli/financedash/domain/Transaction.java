@@ -26,6 +26,10 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private AppUser user;
+
     @Column(nullable = false)
     private String description;
 
@@ -72,6 +76,14 @@ public class Transaction {
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    public AppUser getUser() {
+        return user;
+    }
+
+    public void setUser(AppUser user) {
+        this.user = user;
     }
 
     public String getDescription() {

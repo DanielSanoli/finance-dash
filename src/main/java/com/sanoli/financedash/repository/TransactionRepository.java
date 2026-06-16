@@ -10,6 +10,6 @@ import java.util.UUID;
 
 public interface TransactionRepository extends JpaRepository<Transaction, UUID>, JpaSpecificationExecutor<Transaction> {
 
-    List<Transaction> findByTransactionDateBetween(LocalDate startDate, LocalDate endDate);
+    List<Transaction> findByUserIdAndTransactionDateBetween(UUID userId, LocalDate startDate, LocalDate endDate);
 }
 

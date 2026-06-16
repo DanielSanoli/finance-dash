@@ -1,6 +1,7 @@
 package com.sanoli.financedash.service;
 
 import com.sanoli.financedash.domain.Category;
+import com.sanoli.financedash.domain.AppUser;
 import com.sanoli.financedash.domain.Transaction;
 import com.sanoli.financedash.domain.TransactionType;
 import com.sanoli.financedash.dto.TransactionRequest;
@@ -9,6 +10,7 @@ import com.sanoli.financedash.exception.BusinessException;
 import com.sanoli.financedash.exception.ResourceNotFoundException;
 import com.sanoli.financedash.repository.CategoryRepository;
 import com.sanoli.financedash.repository.TransactionRepository;
+import com.sanoli.financedash.security.CurrentUserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -43,11 +45,15 @@ class TransactionServiceTest {
     @Mock
     private CategoryRepository categoryRepository;
 
+    @Mock
+    private CurrentUserService currentUserService;
+
     @InjectMocks
     private TransactionService transactionService;
 
     @Test
     void shouldCreateTransaction() {
+        AppUser user = user();
         Category category = category(UUID.randomUUID(), "Servicos", TransactionType.INCOME);
         TransactionRequest request = new TransactionRequest(
                 "Projeto website",
@@ -60,7 +66,9 @@ class TransactionServiceTest {
         );
 
         UUID id = UUID.randomUUID();
-        when(categoryRepository.findById(category.getId())).thenReturn(Optional.of(category));
+        when(currentUserService.getCurrentUserId()).thenReturn(user.getId());
+        when(currentUserService.getCurrentUser()).thenReturn(user);
+        when(categoryRepository.findByIdAndUserId(category.getId(), user.getId())).thenReturn(Optional.of(category));
         when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> {
             Transaction transaction = invocation.getArgument(0);
             transaction.setId(id);
@@ -82,10 +90,12 @@ class TransactionServiceTest {
         verify(transactionRepository).save(captor.capture());
         assertThat(captor.getValue().getPaymentMethod()).isEqualTo("PIX");
         assertThat(captor.getValue().getCategory()).isEqualTo(category);
+        assertThat(captor.getValue().getUser()).isEqualTo(user);
     }
 
     @Test
     void shouldListTransactions() {
+        AppUser user = user();
         Transaction income = transaction(
                 UUID.randomUUID(),
                 "Recebimento",
@@ -102,6 +112,7 @@ class TransactionServiceTest {
         );
         when(transactionRepository.findAll(any(Specification.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(income, expense)));
+        when(currentUserService.getCurrentUserId()).thenReturn(user.getId());
 
         Page<TransactionResponse> responses = transactionService.findAll(null, null, null, null, PageRequest.of(0, 20));
 
@@ -112,6 +123,7 @@ class TransactionServiceTest {
 
     @Test
     void shouldRejectTransactionWhenCategoryTypeDoesNotMatch() {
+        AppUser user = user();
         Category category = category(UUID.randomUUID(), "Software", TransactionType.EXPENSE);
         TransactionRequest request = new TransactionRequest(
                 "Projeto website",
@@ -122,7 +134,8 @@ class TransactionServiceTest {
                 "PIX",
                 "Cliente Sanoli"
         );
-        when(categoryRepository.findById(category.getId())).thenReturn(Optional.of(category));
+        when(currentUserService.getCurrentUserId()).thenReturn(user.getId());
+        when(categoryRepository.findByIdAndUserId(category.getId(), user.getId())).thenReturn(Optional.of(category));
 
         assertThatThrownBy(() -> transactionService.create(request))
                 .isInstanceOf(BusinessException.class)
@@ -131,8 +144,10 @@ class TransactionServiceTest {
 
     @Test
     void shouldThrowWhenTransactionIdDoesNotExist() {
+        AppUser user = user();
         UUID id = UUID.randomUUID();
-        when(transactionRepository.findById(id)).thenReturn(Optional.empty());
+        when(currentUserService.getCurrentUserId()).thenReturn(user.getId());
+        when(transactionRepository.findOne(any(Specification.class))).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> transactionService.findById(id))
                 .isInstanceOf(ResourceNotFoundException.class)
@@ -162,6 +177,15 @@ class TransactionServiceTest {
         category.setCreatedAt(LocalDateTime.of(2026, 7, 10, 10, 0));
         category.setUpdatedAt(LocalDateTime.of(2026, 7, 10, 10, 0));
         return category;
+    }
+
+    private AppUser user() {
+        AppUser user = new AppUser();
+        user.setId(UUID.randomUUID());
+        user.setName("Daniel");
+        user.setEmail("daniel@example.com");
+        user.setPasswordHash("hash");
+        return user;
     }
 }
 

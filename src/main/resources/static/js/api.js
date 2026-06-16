@@ -1,12 +1,22 @@
 const FinanceDashApi = (() => {
+    const tokenKey = "financeDashToken";
     const defaultHeaders = {
         "Content-Type": "application/json"
     };
 
     async function request(path, options = {}) {
+        const headers = {
+            ...defaultHeaders,
+            ...(options.headers || {})
+        };
+        const token = getToken();
+        if (token) {
+            headers.Authorization = `Bearer ${token}`;
+        }
+
         const response = await fetch(path, {
-            headers: defaultHeaders,
-            ...options
+            ...options,
+            headers
         });
 
         if (response.status === 204) {
@@ -17,6 +27,10 @@ const FinanceDashApi = (() => {
         const body = contentType.includes("application/json") ? await response.json() : await response.text();
 
         if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+                clearToken();
+                window.dispatchEvent(new CustomEvent("financedash:unauthorized"));
+            }
             const message = typeof body === "object" && body.message ? body.message : "Erro ao comunicar com a API";
             throw new Error(message);
         }
@@ -35,7 +49,31 @@ const FinanceDashApi = (() => {
         return queryString ? `?${queryString}` : "";
     }
 
+    function setToken(token) {
+        window.localStorage.setItem(tokenKey, token);
+    }
+
+    function getToken() {
+        return window.localStorage.getItem(tokenKey);
+    }
+
+    function clearToken() {
+        window.localStorage.removeItem(tokenKey);
+    }
+
     return {
+        setToken,
+        getToken,
+        clearToken,
+        register: (payload) => request("/api/v1/auth/register", {
+            method: "POST",
+            body: JSON.stringify(payload)
+        }),
+        login: (payload) => request("/api/v1/auth/login", {
+            method: "POST",
+            body: JSON.stringify(payload)
+        }),
+        me: () => request("/api/v1/auth/me"),
         getDashboard: (month, year) => request(`/api/v1/dashboard/monthly${query({ month, year })}`),
         getCategories: () => request("/api/v1/categories"),
         createCategory: (payload) => request("/api/v1/categories", {

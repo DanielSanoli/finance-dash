@@ -24,6 +24,10 @@ public class Goal {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private AppUser user;
+
     @Column(nullable = false)
     private String title;
 
@@ -58,6 +62,14 @@ public class Goal {
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    public AppUser getUser() {
+        return user;
+    }
+
+    public void setUser(AppUser user) {
+        this.user = user;
     }
 
     public String getTitle() {

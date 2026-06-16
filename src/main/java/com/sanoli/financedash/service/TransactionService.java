@@ -9,6 +9,7 @@ import com.sanoli.financedash.exception.BusinessException;
 import com.sanoli.financedash.exception.ResourceNotFoundException;
 import com.sanoli.financedash.repository.CategoryRepository;
 import com.sanoli.financedash.repository.TransactionRepository;
+import com.sanoli.financedash.security.CurrentUserService;
 import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,10 +26,12 @@ public class TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final CategoryRepository categoryRepository;
+    private final CurrentUserService currentUserService;
 
-    public TransactionService(TransactionRepository transactionRepository, CategoryRepository categoryRepository) {
+    public TransactionService(TransactionRepository transactionRepository, CategoryRepository categoryRepository, CurrentUserService currentUserService) {
         this.transactionRepository = transactionRepository;
         this.categoryRepository = categoryRepository;
+        this.currentUserService = currentUserService;
     }
 
     @Transactional
@@ -64,7 +67,7 @@ public class TransactionService {
     }
 
     private Transaction findEntityById(UUID id) {
-        return transactionRepository.findById(id)
+        return transactionRepository.findOne(byCurrentUser().and((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("id"), id)))
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction não encontrada: " + id));
     }
 
@@ -72,6 +75,7 @@ public class TransactionService {
         Category category = findActiveCategoryById(request.categoryId());
         validateCategoryType(category, request.type());
 
+        transaction.setUser(currentUserService.getCurrentUser());
         transaction.setDescription(request.description());
         transaction.setAmount(request.amount());
         transaction.setType(request.type());
@@ -82,7 +86,7 @@ public class TransactionService {
     }
 
     private Category findActiveCategoryById(UUID categoryId) {
-        Category category = categoryRepository.findById(categoryId)
+        Category category = categoryRepository.findByIdAndUserId(categoryId, currentUserService.getCurrentUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category não encontrada: " + categoryId));
 
         if (!category.isActive()) {
@@ -102,8 +106,14 @@ public class TransactionService {
         validateMonthYearFilter(month, year);
 
         return Specification.where(byMonthAndYear(month, year))
+                .and(byCurrentUser())
                 .and(byType(type))
                 .and(byCategoryId(categoryId));
+    }
+
+    private Specification<Transaction> byCurrentUser() {
+        UUID userId = currentUserService.getCurrentUserId();
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("user").get("id"), userId);
     }
 
     private void validateMonthYearFilter(Integer month, Integer year) {

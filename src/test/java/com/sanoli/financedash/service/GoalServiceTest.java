@@ -1,6 +1,7 @@
 package com.sanoli.financedash.service;
 
 import com.sanoli.financedash.domain.Category;
+import com.sanoli.financedash.domain.AppUser;
 import com.sanoli.financedash.domain.Goal;
 import com.sanoli.financedash.domain.GoalType;
 import com.sanoli.financedash.domain.Transaction;
@@ -12,6 +13,7 @@ import com.sanoli.financedash.exception.ResourceNotFoundException;
 import com.sanoli.financedash.repository.CategoryRepository;
 import com.sanoli.financedash.repository.GoalRepository;
 import com.sanoli.financedash.repository.TransactionRepository;
+import com.sanoli.financedash.security.CurrentUserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -44,21 +46,27 @@ class GoalServiceTest {
     @Mock
     private TransactionRepository transactionRepository;
 
+    @Mock
+    private CurrentUserService currentUserService;
+
     @InjectMocks
     private GoalService goalService;
 
     @Test
     void shouldCreateIncomeTargetGoalWithCalculatedProgress() {
+        AppUser user = user();
         Category category = category("Servicos", TransactionType.INCOME);
         GoalRequest request = new GoalRequest("Meta de receita", 7, 2026, new BigDecimal("5000.00"), GoalType.INCOME_TARGET, category.getId());
-        when(categoryRepository.findById(category.getId())).thenReturn(Optional.of(category));
+        when(currentUserService.getCurrentUserId()).thenReturn(user.getId());
+        when(currentUserService.getCurrentUser()).thenReturn(user);
+        when(categoryRepository.findByIdAndUserId(category.getId(), user.getId())).thenReturn(Optional.of(category));
         when(goalRepository.save(any(Goal.class))).thenAnswer(invocation -> {
             Goal goal = invocation.getArgument(0);
             goal.setId(UUID.randomUUID());
             goal.setCreatedAt(LocalDateTime.of(2026, 7, 1, 10, 0));
             return goal;
         });
-        when(transactionRepository.findByTransactionDateBetween(LocalDate.of(2026, 7, 1), LocalDate.of(2026, 7, 31)))
+        when(transactionRepository.findByUserIdAndTransactionDateBetween(user.getId(), LocalDate.of(2026, 7, 1), LocalDate.of(2026, 7, 31)))
                 .thenReturn(List.of(
                         transaction("2500.00", TransactionType.INCOME, category),
                         transaction("1000.00", TransactionType.INCOME, category)
@@ -74,14 +82,17 @@ class GoalServiceTest {
         ArgumentCaptor<Goal> captor = ArgumentCaptor.forClass(Goal.class);
         verify(goalRepository).save(captor.capture());
         assertThat(captor.getValue().getCategory()).isEqualTo(category);
+        assertThat(captor.getValue().getUser()).isEqualTo(user);
     }
 
     @Test
     void shouldCalculateExpenseLimitProgress() {
+        AppUser user = user();
         Category category = category("Software", TransactionType.EXPENSE);
         Goal goal = goal("Limite software", GoalType.EXPENSE_LIMIT, new BigDecimal("1000.00"), category);
-        when(goalRepository.findById(goal.getId())).thenReturn(Optional.of(goal));
-        when(transactionRepository.findByTransactionDateBetween(LocalDate.of(2026, 7, 1), LocalDate.of(2026, 7, 31)))
+        when(currentUserService.getCurrentUserId()).thenReturn(user.getId());
+        when(goalRepository.findByIdAndUserId(goal.getId(), user.getId())).thenReturn(Optional.of(goal));
+        when(transactionRepository.findByUserIdAndTransactionDateBetween(user.getId(), LocalDate.of(2026, 7, 1), LocalDate.of(2026, 7, 31)))
                 .thenReturn(List.of(
                         transaction("250.00", TransactionType.EXPENSE, category),
                         transaction("300.00", TransactionType.EXPENSE, category)
@@ -95,11 +106,13 @@ class GoalServiceTest {
 
     @Test
     void shouldCalculateSavingsTargetProgress() {
+        AppUser user = user();
         Category incomeCategory = category("Salario", TransactionType.INCOME);
         Category expenseCategory = category("Alimentacao", TransactionType.EXPENSE);
         Goal goal = goal("Economizar", GoalType.SAVINGS_TARGET, new BigDecimal("2000.00"), null);
-        when(goalRepository.findById(goal.getId())).thenReturn(Optional.of(goal));
-        when(transactionRepository.findByTransactionDateBetween(LocalDate.of(2026, 7, 1), LocalDate.of(2026, 7, 31)))
+        when(currentUserService.getCurrentUserId()).thenReturn(user.getId());
+        when(goalRepository.findByIdAndUserId(goal.getId(), user.getId())).thenReturn(Optional.of(goal));
+        when(transactionRepository.findByUserIdAndTransactionDateBetween(user.getId(), LocalDate.of(2026, 7, 1), LocalDate.of(2026, 7, 31)))
                 .thenReturn(List.of(
                         transaction("5000.00", TransactionType.INCOME, incomeCategory),
                         transaction("1500.00", TransactionType.EXPENSE, expenseCategory)
@@ -113,9 +126,11 @@ class GoalServiceTest {
 
     @Test
     void shouldRejectSavingsTargetWithCategory() {
+        AppUser user = user();
         Category category = category("Salario", TransactionType.INCOME);
         GoalRequest request = new GoalRequest("Economizar", 7, 2026, new BigDecimal("2000.00"), GoalType.SAVINGS_TARGET, category.getId());
-        when(categoryRepository.findById(category.getId())).thenReturn(Optional.of(category));
+        when(currentUserService.getCurrentUserId()).thenReturn(user.getId());
+        when(categoryRepository.findByIdAndUserId(category.getId(), user.getId())).thenReturn(Optional.of(category));
 
         assertThatThrownBy(() -> goalService.create(request))
                 .isInstanceOf(BusinessException.class)
@@ -124,8 +139,10 @@ class GoalServiceTest {
 
     @Test
     void shouldThrowWhenGoalDoesNotExist() {
+        AppUser user = user();
         UUID id = UUID.randomUUID();
-        when(goalRepository.findById(id)).thenReturn(Optional.empty());
+        when(currentUserService.getCurrentUserId()).thenReturn(user.getId());
+        when(goalRepository.findByIdAndUserId(id, user.getId())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> goalService.findById(id))
                 .isInstanceOf(ResourceNotFoundException.class)
@@ -163,6 +180,15 @@ class GoalServiceTest {
         transaction.setCategory(category);
         transaction.setTransactionDate(LocalDate.of(2026, 7, 10));
         return transaction;
+    }
+
+    private AppUser user() {
+        AppUser user = new AppUser();
+        user.setId(UUID.randomUUID());
+        user.setName("Daniel");
+        user.setEmail("daniel@example.com");
+        user.setPasswordHash("hash");
+        return user;
     }
 }
 

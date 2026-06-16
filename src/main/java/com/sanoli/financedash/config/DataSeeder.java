@@ -1,40 +1,56 @@
 package com.sanoli.financedash.config;
 
-import com.sanoli.financedash.domain.Category;
-import com.sanoli.financedash.domain.TransactionType;
-import com.sanoli.financedash.repository.CategoryRepository;
+import com.sanoli.financedash.domain.AppUser;
+import com.sanoli.financedash.repository.UserRepository;
+import com.sanoli.financedash.service.DefaultCategoryService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.List;
 
 @Configuration
 public class DataSeeder {
 
     @Bean
-    CommandLineRunner seedDefaultCategories(CategoryRepository categoryRepository) {
+    CommandLineRunner seedDemoAccount(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            DefaultCategoryService defaultCategoryService,
+            JdbcTemplate jdbcTemplate
+    ) {
         return args -> {
-            seedCategory(categoryRepository, "Salario", TransactionType.INCOME, "#16A34A");
-            seedCategory(categoryRepository, "Servicos", TransactionType.INCOME, "#22C55E");
-            seedCategory(categoryRepository, "Vendas", TransactionType.INCOME, "#14B8A6");
-            seedCategory(categoryRepository, "Alimentacao", TransactionType.EXPENSE, "#F97316");
-            seedCategory(categoryRepository, "Transporte", TransactionType.EXPENSE, "#3B82F6");
-            seedCategory(categoryRepository, "Cartao", TransactionType.EXPENSE, "#EF4444");
-            seedCategory(categoryRepository, "Software", TransactionType.EXPENSE, "#8B5CF6");
-            seedCategory(categoryRepository, "Impostos", TransactionType.EXPENSE, "#64748B");
+            removeGlobalCategoryUniqueConstraints(jdbcTemplate);
+
+            AppUser demoUser = userRepository.findByEmailIgnoreCase("demo@financedash.com")
+                    .orElseGet(() -> {
+                        AppUser user = new AppUser();
+                        user.setName("Demo FinanceDash");
+                        user.setEmail("demo@financedash.com");
+                        user.setPasswordHash(passwordEncoder.encode("demo12345"));
+                        return userRepository.save(user);
+                    });
+            defaultCategoryService.seedForUser(demoUser);
         };
     }
 
-    private void seedCategory(CategoryRepository categoryRepository, String name, TransactionType type, String color) {
-        if (categoryRepository.existsByNameIgnoreCase(name)) {
-            return;
-        }
+    private void removeGlobalCategoryUniqueConstraints(JdbcTemplate jdbcTemplate) {
+        try {
+            List<String> constraintNames = jdbcTemplate.queryForList("""
+                    select conname
+                    from pg_constraint
+                    where conrelid = 'categories'::regclass
+                      and contype = 'u'
+                    """, String.class);
 
-        Category category = new Category();
-        category.setName(name);
-        category.setType(type);
-        category.setColor(color);
-        category.setActive(true);
-        categoryRepository.save(category);
+            for (String constraintName : constraintNames) {
+                jdbcTemplate.execute("alter table categories drop constraint if exists " + constraintName);
+            }
+        } catch (Exception ignored) {
+            // Startup must not fail if the database is not PostgreSQL or the constraint was already removed.
+        }
     }
 }
 

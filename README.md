@@ -30,6 +30,7 @@ Oferecer uma API REST simples e extensível para registrar lançamentos financei
 - Dados financeiros isolados por usuário autenticado
 - Conta demo criada automaticamente: `demo@financedash.com` / `demo12345`
 - Base inicial para plano, trial e status de assinatura
+- Área de conta no frontend com plano, status, trial e assinatura
 
 ### Lançamentos financeiros
 
@@ -64,6 +65,8 @@ Oferecer uma API REST simples e extensível para registrar lançamentos financei
 
 - Usuários possuem `plan`, `subscriptionStatus`, `trialEndsAt` e `subscriptionEndsAt`
 - O MVP cria contas em trial automaticamente
+- APIs financeiras retornam `402 SUBSCRIPTION_REQUIRED` quando o trial expira ou a assinatura fica `PAST_DUE`/`CANCELED`
+- A tela de conta mostra o bloqueio e mantém o usuário logado para visualizar o status
 - Integração real com gateway de pagamento deve atualizar esses campos por webhook
 
 ## Endpoints
@@ -393,6 +396,7 @@ Funcionalidades iniciais:
 - login, cadastro, logout e conta demo;
 - envio automático do token JWT nas chamadas da API;
 - isolamento visual e funcional dos dados por usuário autenticado;
+- seção de conta/billing com plano, trial, status e aviso de bloqueio;
 - cards de receitas, despesas e saldo mensal;
 - gráficos com Chart.js para receitas/despesas por categoria;
 - formulário para criar e editar lançamentos;

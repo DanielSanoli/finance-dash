@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FinanceDash</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="stylesheet" href="css/styles.css?v=20260616-1">
+    <link rel="stylesheet" href="css/styles.css?v=20260616-2">
 </head>
 <body>
     <header class="app-header">
@@ -24,6 +24,7 @@
             </div>
             <div id="user-menu" class="user-menu hidden">
                 <span id="user-menu-name"></span>
+                <button id="account-button" class="button-secondary" type="button">Conta</button>
                 <button id="logout-button" class="button-secondary" type="button">Sair</button>
             </div>
         </div>
@@ -70,6 +71,43 @@
     </section>
 
     <main id="app-content" class="layout hidden">
+        <section id="subscription-warning" class="subscription-warning hidden" role="alert">
+            <strong id="subscription-warning-title">Acesso bloqueado</strong>
+            <span id="subscription-warning-message">Atualize seu plano para voltar a usar o dashboard.</span>
+        </section>
+
+        <section id="account-panel" class="panel account-panel">
+            <div class="panel-header">
+                <div>
+                    <h2>Conta e billing</h2>
+                    <span>Base interna para trial e futura cobrança recorrente</span>
+                </div>
+                <span id="account-access-badge" class="account-badge">Acesso ativo</span>
+            </div>
+            <div class="account-grid">
+                <article class="account-item">
+                    <span>Usuário</span>
+                    <strong id="account-name">-</strong>
+                    <small id="account-email">-</small>
+                </article>
+                <article class="account-item">
+                    <span>Plano</span>
+                    <strong id="account-plan">FREE</strong>
+                    <small id="account-status">Trial</small>
+                </article>
+                <article class="account-item">
+                    <span>Trial</span>
+                    <strong id="account-trial-days">0 dias</strong>
+                    <small id="account-trial-ends">Sem data</small>
+                </article>
+                <article class="account-item">
+                    <span>Assinatura</span>
+                    <strong id="account-subscription-status">TRIALING</strong>
+                    <small id="account-subscription-ends">Gateway ainda não integrado</small>
+                </article>
+            </div>
+        </section>
+
         <section class="cards" aria-label="Resumo mensal">
             <article class="card income">
                 <span>Receitas</span>
@@ -398,13 +436,13 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <script src="js/api.js?v=20260616-1"></script>
-    <script src="js/auth.js?v=20260616-1"></script>
-    <script src="js/categories.js?v=20260616-1"></script>
-    <script src="js/dashboard.js?v=20260616-1"></script>
-    <script src="js/transactions.js?v=20260616-1"></script>
-    <script src="js/goals.js?v=20260616-1"></script>
-    <script src="js/app.js?v=20260616-1"></script>
+    <script src="js/api.js?v=20260616-2"></script>
+    <script src="js/auth.js?v=20260616-2"></script>
+    <script src="js/categories.js?v=20260616-2"></script>
+    <script src="js/dashboard.js?v=20260616-2"></script>
+    <script src="js/transactions.js?v=20260616-2"></script>
+    <script src="js/goals.js?v=20260616-2"></script>
+    <script src="js/app.js?v=20260616-2"></script>
 </body>
 </html>
 

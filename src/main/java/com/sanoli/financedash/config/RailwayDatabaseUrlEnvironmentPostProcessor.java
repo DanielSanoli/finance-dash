@@ -30,8 +30,8 @@ public class RailwayDatabaseUrlEnvironmentPostProcessor implements EnvironmentPo
 
         if (databaseUrl == null) {
             // PGHOST/PGPORT/PGDATABASE are enough to build the connection.
-        } else if (databaseUrl.startsWith("jdbc:postgresql://") && !hasInvalidJdbcDatabaseName(databaseUrl)) {
-            properties.put("spring.datasource.url", databaseUrl);
+        } else if (databaseUrl.startsWith("jdbc:postgresql://")) {
+            applyJdbcPostgresUrl(databaseUrl, environment, properties);
         } else if (databaseUrl.startsWith("postgres://") || databaseUrl.startsWith("postgresql://")) {
             applyPostgresUrl(databaseUrl, environment, properties);
         }
@@ -39,6 +39,16 @@ public class RailwayDatabaseUrlEnvironmentPostProcessor implements EnvironmentPo
         if (!properties.isEmpty()) {
             environment.getPropertySources().addFirst(new MapPropertySource(PROPERTY_SOURCE_NAME, properties));
         }
+    }
+
+    private void applyJdbcPostgresUrl(String databaseUrl, ConfigurableEnvironment environment, Map<String, Object> properties) {
+        if (!hasInvalidJdbcDatabaseName(databaseUrl)) {
+            properties.put("spring.datasource.url", databaseUrl);
+            return;
+        }
+
+        String database = firstNonBlank(environment.getProperty("PGDATABASE"), environment.getProperty("POSTGRES_DB"), "railway");
+        properties.put("spring.datasource.url", replaceJdbcDatabaseName(databaseUrl, database));
     }
 
     private void applyRailwayPostgresParts(ConfigurableEnvironment environment, Map<String, Object> properties) {
@@ -113,6 +123,19 @@ public class RailwayDatabaseUrlEnvironmentPostProcessor implements EnvironmentPo
         int lastSlash = withoutQuery.lastIndexOf('/');
         String path = lastSlash >= 0 ? withoutQuery.substring(lastSlash) : "";
         return hasInvalidDatabasePath(path);
+    }
+
+    private String replaceJdbcDatabaseName(String jdbcUrl, String database) {
+        int queryStart = jdbcUrl.indexOf('?');
+        String query = queryStart >= 0 ? jdbcUrl.substring(queryStart) : "";
+        String withoutQuery = queryStart >= 0 ? jdbcUrl.substring(0, queryStart) : jdbcUrl;
+        int lastSlash = withoutQuery.lastIndexOf('/');
+
+        if (lastSlash < 0) {
+            return jdbcUrl;
+        }
+
+        return withoutQuery.substring(0, lastSlash + 1) + database + query;
     }
 
     private boolean hasInvalidDatabasePath(String path) {

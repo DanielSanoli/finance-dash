@@ -312,7 +312,7 @@ PGPASSWORD=${{Postgres.PGPASSWORD}}
 SERVER_PORT=${{PORT}}
 ```
 
-Evite quebrar a URL em múltiplas linhas ou deixar um `$` isolado no final. Se o deploy falhar com `database "$" does not exist`, remova a `DATABASE_URL` manual e use uma das opções acima.
+Evite quebrar a URL em múltiplas linhas ou deixar um `$` isolado no final. Se o deploy falhar com `database "$" does not exist`, remova a `DATABASE_URL` manual quebrada e use `DATABASE_URL=${{Postgres.DATABASE_URL}}` ou as variáveis `PG*` acima. O app também tenta corrigir `jdbc:postgresql://.../$` usando o banco padrão `railway`.
 
 Se o deploy falhar com erro de Hibernate `Unable to determine Dialect`, normalmente a variável `DATABASE_URL` está ausente, vazia ou apontando para uma referência de serviço incorreta no Railway.
 

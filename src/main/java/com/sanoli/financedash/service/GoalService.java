@@ -12,6 +12,7 @@ import com.sanoli.financedash.exception.ResourceNotFoundException;
 import com.sanoli.financedash.repository.CategoryRepository;
 import com.sanoli.financedash.repository.GoalRepository;
 import com.sanoli.financedash.repository.TransactionRepository;
+import com.sanoli.financedash.security.CurrentUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,11 +33,18 @@ public class GoalService {
     private final GoalRepository goalRepository;
     private final CategoryRepository categoryRepository;
     private final TransactionRepository transactionRepository;
+    private final CurrentUserService currentUserService;
 
-    public GoalService(GoalRepository goalRepository, CategoryRepository categoryRepository, TransactionRepository transactionRepository) {
+    public GoalService(
+            GoalRepository goalRepository,
+            CategoryRepository categoryRepository,
+            TransactionRepository transactionRepository,
+            CurrentUserService currentUserService
+    ) {
         this.goalRepository = goalRepository;
         this.categoryRepository = categoryRepository;
         this.transactionRepository = transactionRepository;
+        this.currentUserService = currentUserService;
     }
 
     @Transactional
@@ -48,7 +56,7 @@ public class GoalService {
 
     @Transactional(readOnly = true)
     public List<GoalResponse> findAll() {
-        return goalRepository.findAll()
+        return goalRepository.findAllByUserId(currentUserService.getCurrentUserId())
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -73,14 +81,14 @@ public class GoalService {
 
     @Transactional(readOnly = true)
     public List<GoalResponse> findByMonthAndYear(Integer month, Integer year) {
-        return goalRepository.findByMonthAndYear(month, year)
+        return goalRepository.findByUserIdAndMonthAndYear(currentUserService.getCurrentUserId(), month, year)
                 .stream()
                 .map(this::toResponse)
                 .toList();
     }
 
     private Goal findEntityById(UUID id) {
-        return goalRepository.findById(id)
+        return goalRepository.findByIdAndUserId(id, currentUserService.getCurrentUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("Goal não encontrada: " + id));
     }
 
@@ -88,6 +96,7 @@ public class GoalService {
         Category category = resolveCategory(request.categoryId());
         validateCategoryCompatibility(request.type(), category);
 
+        goal.setUser(currentUserService.getCurrentUser());
         goal.setTitle(request.title().trim());
         goal.setMonth(request.month());
         goal.setYear(request.year());
@@ -101,7 +110,7 @@ public class GoalService {
             return null;
         }
 
-        Category category = categoryRepository.findById(categoryId)
+        Category category = categoryRepository.findByIdAndUserId(categoryId, currentUserService.getCurrentUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category não encontrada: " + categoryId));
 
         if (!category.isActive()) {
@@ -139,7 +148,7 @@ public class GoalService {
         YearMonth yearMonth = YearMonth.of(goal.getYear(), goal.getMonth());
         LocalDate startDate = yearMonth.atDay(1);
         LocalDate endDate = yearMonth.atEndOfMonth();
-        List<Transaction> transactions = transactionRepository.findByTransactionDateBetween(startDate, endDate)
+        List<Transaction> transactions = transactionRepository.findByUserIdAndTransactionDateBetween(currentUserService.getCurrentUserId(), startDate, endDate)
                 .stream()
                 .filter(transaction -> goal.getCategory() == null || transaction.getCategory().getId().equals(goal.getCategory().getId()))
                 .toList();

@@ -1,11 +1,13 @@
 package com.sanoli.financedash.service;
 
 import com.sanoli.financedash.domain.Category;
+import com.sanoli.financedash.domain.AppUser;
 import com.sanoli.financedash.domain.Transaction;
 import com.sanoli.financedash.domain.TransactionType;
 import com.sanoli.financedash.dto.CategoryAmountResponse;
 import com.sanoli.financedash.dto.MonthlyDashboardResponse;
 import com.sanoli.financedash.repository.TransactionRepository;
+import com.sanoli.financedash.security.CurrentUserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,17 +28,23 @@ class DashboardServiceTest {
     @Mock
     private TransactionRepository transactionRepository;
 
+    @Mock
+    private CurrentUserService currentUserService;
+
     @InjectMocks
     private DashboardService dashboardService;
 
     @Test
     void shouldCalculateMonthlyDashboard() {
+        AppUser user = user();
         Category salario = category("Salario", TransactionType.INCOME, "#16A34A");
         Category servicos = category("Servicos", TransactionType.INCOME, "#22C55E");
         Category alimentacao = category("Alimentacao", TransactionType.EXPENSE, "#F97316");
         Category cartao = category("Cartao", TransactionType.EXPENSE, "#EF4444");
 
-        when(transactionRepository.findByTransactionDateBetween(
+        when(currentUserService.getCurrentUserId()).thenReturn(user.getId());
+        when(transactionRepository.findByUserIdAndTransactionDateBetween(
+                user.getId(),
                 LocalDate.of(2026, 7, 1),
                 LocalDate.of(2026, 7, 31)
         )).thenReturn(List.of(
@@ -73,7 +81,10 @@ class DashboardServiceTest {
 
     @Test
     void shouldReturnZeroValuesWhenThereAreNoTransactions() {
-        when(transactionRepository.findByTransactionDateBetween(
+        AppUser user = user();
+        when(currentUserService.getCurrentUserId()).thenReturn(user.getId());
+        when(transactionRepository.findByUserIdAndTransactionDateBetween(
+                user.getId(),
                 LocalDate.of(2026, 8, 1),
                 LocalDate.of(2026, 8, 31)
         )).thenReturn(List.of());
@@ -106,6 +117,15 @@ class DashboardServiceTest {
         category.setColor(color);
         category.setActive(true);
         return category;
+    }
+
+    private AppUser user() {
+        AppUser user = new AppUser();
+        user.setId(UUID.randomUUID());
+        user.setName("Daniel");
+        user.setEmail("daniel@example.com");
+        user.setPasswordHash("hash");
+        return user;
     }
 }
 

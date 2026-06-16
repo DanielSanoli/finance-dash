@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FinanceDash</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="stylesheet" href="css/styles.css?v=20260615-4">
+    <link rel="stylesheet" href="css/styles.css?v=20260616-1">
 </head>
 <body>
     <header class="app-header">
@@ -14,16 +14,62 @@
             <h1>Dashboard financeiro</h1>
             <p class="subtitle">Controle receitas, despesas, categorias e metas em uma visão mensal.</p>
         </div>
-        <div class="period-filter" aria-label="Filtro de período">
-            <label for="month">Mês</label>
-            <select id="month"></select>
-            <label for="year">Ano</label>
-            <input id="year" type="number" min="1900" max="2999">
-            <button id="reload-dashboard" type="button">Atualizar</button>
+        <div class="header-actions">
+            <div class="period-filter hidden" id="period-filter" aria-label="Filtro de período">
+                <label for="month">Mês</label>
+                <select id="month"></select>
+                <label for="year">Ano</label>
+                <input id="year" type="number" min="1900" max="2999">
+                <button id="reload-dashboard" type="button">Atualizar</button>
+            </div>
+            <div id="user-menu" class="user-menu hidden">
+                <span id="user-menu-name"></span>
+                <button id="logout-button" class="button-secondary" type="button">Sair</button>
+            </div>
         </div>
     </header>
 
-    <main class="layout">
+    <section id="auth-section" class="auth-layout">
+        <article class="panel auth-card">
+            <p class="eyebrow">Acesso ao FinanceDash</p>
+            <h2>Entre ou crie sua conta</h2>
+            <p class="subtitle">Cada conta acessa apenas seus próprios lançamentos, categorias, metas e dashboard.</p>
+            <div class="auth-tabs">
+                <button id="login-tab" type="button">Login</button>
+                <button id="register-tab" class="button-secondary" type="button">Cadastro</button>
+            </div>
+            <form id="login-form" class="form auth-form">
+                <label class="full-width">
+                    Email
+                    <input name="email" type="email" value="demo@financedash.com" required>
+                </label>
+                <label class="full-width">
+                    Senha
+                    <input name="password" type="password" value="demo12345" required>
+                </label>
+                <button id="login-submit" type="submit">Entrar</button>
+                <p id="login-feedback" class="feedback" role="status"></p>
+            </form>
+            <form id="register-form" class="form auth-form hidden">
+                <label class="full-width">
+                    Nome
+                    <input name="name" type="text" placeholder="Seu nome" required>
+                </label>
+                <label class="full-width">
+                    Email
+                    <input name="email" type="email" placeholder="voce@email.com" required>
+                </label>
+                <label class="full-width">
+                    Senha
+                    <input name="password" type="password" minlength="8" placeholder="Mínimo 8 caracteres" required>
+                </label>
+                <button id="register-submit" type="submit">Criar conta</button>
+                <p id="register-feedback" class="feedback" role="status"></p>
+            </form>
+        </article>
+    </section>
+
+    <main id="app-content" class="layout hidden">
         <section class="cards" aria-label="Resumo mensal">
             <article class="card income">
                 <span>Receitas</span>
@@ -352,12 +398,13 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <script src="js/api.js?v=20260615-4"></script>
-    <script src="js/categories.js?v=20260615-4"></script>
-    <script src="js/dashboard.js?v=20260615-4"></script>
-    <script src="js/transactions.js?v=20260615-4"></script>
-    <script src="js/goals.js?v=20260615-4"></script>
-    <script src="js/app.js?v=20260615-4"></script>
+    <script src="js/api.js?v=20260616-1"></script>
+    <script src="js/auth.js?v=20260616-1"></script>
+    <script src="js/categories.js?v=20260616-1"></script>
+    <script src="js/dashboard.js?v=20260616-1"></script>
+    <script src="js/transactions.js?v=20260616-1"></script>
+    <script src="js/goals.js?v=20260616-1"></script>
+    <script src="js/app.js?v=20260616-1"></script>
 </body>
 </html>
 

@@ -5,6 +5,7 @@ import com.sanoli.financedash.domain.TransactionType;
 import com.sanoli.financedash.dto.CategoryAmountResponse;
 import com.sanoli.financedash.dto.MonthlyDashboardResponse;
 import com.sanoli.financedash.repository.TransactionRepository;
+import com.sanoli.financedash.security.CurrentUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,9 +26,11 @@ public class DashboardService {
     private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
 
     private final TransactionRepository transactionRepository;
+    private final CurrentUserService currentUserService;
 
-    public DashboardService(TransactionRepository transactionRepository) {
+    public DashboardService(TransactionRepository transactionRepository, CurrentUserService currentUserService) {
         this.transactionRepository = transactionRepository;
+        this.currentUserService = currentUserService;
     }
 
     @Transactional(readOnly = true)
@@ -36,7 +39,11 @@ public class DashboardService {
         LocalDate startDate = yearMonth.atDay(1);
         LocalDate endDate = yearMonth.atEndOfMonth();
 
-        List<Transaction> transactions = transactionRepository.findByTransactionDateBetween(startDate, endDate);
+        List<Transaction> transactions = transactionRepository.findByUserIdAndTransactionDateBetween(
+                currentUserService.getCurrentUserId(),
+                startDate,
+                endDate
+        );
 
         BigDecimal totalIncome = sumByType(transactions, TransactionType.INCOME);
         BigDecimal totalExpense = sumByType(transactions, TransactionType.EXPENSE);

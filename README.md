@@ -22,6 +22,15 @@ Oferecer uma API REST simples e extensível para registrar lançamentos financei
 
 ## Funcionalidades
 
+### Autenticação e multiusuário
+
+- Cadastro e login com email e senha
+- Senha criptografada com BCrypt
+- Sessão via JWT
+- Dados financeiros isolados por usuário autenticado
+- Conta demo criada automaticamente: `demo@financedash.com` / `demo12345`
+- Base inicial para plano, trial e status de assinatura
+
 ### Lançamentos financeiros
 
 - Criar receitas e despesas
@@ -51,7 +60,27 @@ Oferecer uma API REST simples e extensível para registrar lançamentos financei
 - Listar metas
 - Listar metas por mês e ano
 
+### Base para assinatura
+
+- Usuários possuem `plan`, `subscriptionStatus`, `trialEndsAt` e `subscriptionEndsAt`
+- O MVP cria contas em trial automaticamente
+- Integração real com gateway de pagamento deve atualizar esses campos por webhook
+
 ## Endpoints
+
+Todos os endpoints financeiros exigem o header:
+
+```text
+Authorization: Bearer {token}
+```
+
+### Auth
+
+| Método | Endpoint | Descrição |
+| --- | --- | --- |
+| POST | `/api/v1/auth/register` | Cria uma conta e retorna JWT |
+| POST | `/api/v1/auth/login` | Autentica e retorna JWT |
+| GET | `/api/v1/auth/me` | Retorna o usuário autenticado |
 
 ### Transactions
 
@@ -257,6 +286,8 @@ $env:DATABASE_URL="jdbc:postgresql://localhost:5432/financedash"
 $env:DATABASE_USERNAME="financedash"
 $env:DATABASE_PASSWORD="financedash"
 $env:SERVER_PORT="8080"
+$env:JWT_SECRET="troque-este-segredo-em-producao"
+$env:JWT_EXPIRATION_SECONDS="86400"
 ```
 
 ## Como rodar com Docker Compose
@@ -350,6 +381,7 @@ src/main/resources/static/
 └── js/
     ├── api.js
     ├── app.js
+    ├── auth.js
     ├── categories.js
     ├── dashboard.js
     ├── goals.js
@@ -358,6 +390,9 @@ src/main/resources/static/
 
 Funcionalidades iniciais:
 
+- login, cadastro, logout e conta demo;
+- envio automático do token JWT nas chamadas da API;
+- isolamento visual e funcional dos dados por usuário autenticado;
 - cards de receitas, despesas e saldo mensal;
 - gráficos com Chart.js para receitas/despesas por categoria;
 - formulário para criar e editar lançamentos;

@@ -1,4 +1,6 @@
 const FinanceDashApp = (() => {
+    let initialized = false;
+
     function initPeriodControls() {
         const monthSelect = document.getElementById("month");
         const yearInput = document.getElementById("year");
@@ -35,6 +37,11 @@ const FinanceDashApp = (() => {
     }
 
     async function start() {
+        if (initialized) {
+            await refresh();
+            return;
+        }
+        initialized = true;
         initPeriodControls();
         FinanceDashTransactions.setDefaultDate();
         FinanceDashCategories.bindEvents(refresh);
@@ -54,9 +61,15 @@ const FinanceDashApp = (() => {
             }
         });
 
+        await refresh();
+    }
+
+    async function boot() {
         try {
-            await FinanceDashCategories.load();
-            await refresh();
+            await FinanceDashAuth.init(async () => {
+                await FinanceDashCategories.load();
+                await start();
+            });
         } catch (error) {
             FinanceDashUi.showToast(error.message);
             console.error(error);
@@ -64,9 +77,10 @@ const FinanceDashApp = (() => {
     }
 
     return {
-        start
+        start,
+        boot
     };
 })();
 
-document.addEventListener("DOMContentLoaded", FinanceDashApp.start);
+document.addEventListener("DOMContentLoaded", FinanceDashApp.boot);
 

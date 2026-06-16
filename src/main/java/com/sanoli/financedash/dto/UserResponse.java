@@ -16,7 +16,10 @@ public record UserResponse(
         SubscriptionPlan plan,
         SubscriptionStatus subscriptionStatus,
         LocalDateTime trialEndsAt,
-        LocalDateTime subscriptionEndsAt
+        LocalDateTime subscriptionEndsAt,
+        boolean accessAllowed,
+        String accessMessage,
+        long trialDaysRemaining
 ) {
     public static UserResponse fromEntity(AppUser user) {
         return new UserResponse(
@@ -27,7 +30,10 @@ public record UserResponse(
                 user.getPlan(),
                 user.getSubscriptionStatus(),
                 user.getTrialEndsAt(),
-                user.getSubscriptionEndsAt()
+                user.getSubscriptionEndsAt(),
+                user.hasActiveAccess(),
+                user.getAccessMessage(),
+                user.getTrialDaysRemaining()
         );
     }
 }

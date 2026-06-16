@@ -12,6 +12,7 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 @Entity
@@ -155,5 +156,38 @@ public class AppUser {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public boolean hasActiveAccess() {
+        LocalDateTime now = LocalDateTime.now();
+        if (subscriptionStatus == SubscriptionStatus.ACTIVE) {
+            return subscriptionEndsAt == null || subscriptionEndsAt.isAfter(now);
+        }
+
+        if (subscriptionStatus == SubscriptionStatus.TRIALING) {
+            return trialEndsAt != null && trialEndsAt.isAfter(now);
+        }
+
+        return false;
+    }
+
+    public long getTrialDaysRemaining() {
+        if (trialEndsAt == null || !trialEndsAt.isAfter(LocalDateTime.now())) {
+            return 0;
+        }
+        return ChronoUnit.DAYS.between(LocalDateTime.now(), trialEndsAt);
+    }
+
+    public String getAccessMessage() {
+        if (hasActiveAccess()) {
+            return "Acesso ativo";
+        }
+
+        return switch (subscriptionStatus) {
+            case PAST_DUE -> "Pagamento pendente";
+            case CANCELED -> "Assinatura cancelada";
+            case TRIALING -> "Trial expirado";
+            case ACTIVE -> "Assinatura expirada";
+        };
     }
 }

@@ -40,4 +40,24 @@ class RailwayDatabaseUrlEnvironmentPostProcessorTest {
         assertThat(environment.getProperty("spring.datasource.url"))
                 .isEqualTo("jdbc:postgresql://localhost:5432/financedash");
     }
+
+    @Test
+    void shouldUseRailwayPostgresPartsWhenDatabaseUrlHasInvalidDatabaseName() {
+        StandardEnvironment environment = new StandardEnvironment();
+        environment.getPropertySources().addFirst(new MapPropertySource("test", Map.of(
+                "DATABASE_URL", "jdbc:postgresql://containers-us-west-1.railway.app:5432/$",
+                "PGHOST", "containers-us-west-1.railway.app",
+                "PGPORT", "5432",
+                "PGDATABASE", "railway",
+                "PGUSER", "demo",
+                "PGPASSWORD", "secret"
+        )));
+
+        postProcessor.postProcessEnvironment(environment, new SpringApplication());
+
+        assertThat(environment.getProperty("spring.datasource.url"))
+                .isEqualTo("jdbc:postgresql://containers-us-west-1.railway.app:5432/railway");
+        assertThat(environment.getProperty("spring.datasource.username")).isEqualTo("demo");
+        assertThat(environment.getProperty("spring.datasource.password")).isEqualTo("secret");
+    }
 }

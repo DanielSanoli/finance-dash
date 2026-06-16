@@ -301,14 +301,18 @@ DATABASE_URL=${{Postgres.DATABASE_URL}}
 SERVER_PORT=${{PORT}}
 ```
 
-O app converte automaticamente URLs `postgres://` ou `postgresql://` para o formato JDBC exigido pelo Spring (`jdbc:postgresql://...`). Se preferir configurar manualmente, também funciona:
+O app converte automaticamente URLs `postgres://` ou `postgresql://` para o formato JDBC exigido pelo Spring (`jdbc:postgresql://...`). Se preferir evitar montagem manual de URL, também pode configurar as partes do PostgreSQL:
 
 ```text
-DATABASE_URL=jdbc:postgresql://${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}
-DATABASE_USERNAME=${{Postgres.PGUSER}}
-DATABASE_PASSWORD=${{Postgres.PGPASSWORD}}
+PGHOST=${{Postgres.PGHOST}}
+PGPORT=${{Postgres.PGPORT}}
+PGDATABASE=${{Postgres.PGDATABASE}}
+PGUSER=${{Postgres.PGUSER}}
+PGPASSWORD=${{Postgres.PGPASSWORD}}
 SERVER_PORT=${{PORT}}
 ```
+
+Evite quebrar a URL em múltiplas linhas ou deixar um `$` isolado no final. Se o deploy falhar com `database "$" does not exist`, remova a `DATABASE_URL` manual e use uma das opções acima.
 
 Se o deploy falhar com erro de Hibernate `Unable to determine Dialect`, normalmente a variável `DATABASE_URL` está ausente, vazia ou apontando para uma referência de serviço incorreta no Railway.
 

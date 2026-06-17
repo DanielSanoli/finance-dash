@@ -1,10 +1,21 @@
 # FinanceDash
 
-FinanceDash é um MVP de dashboard financeiro para freelancers, MEIs e pequenos negócios controlarem receitas, despesas, saldo mensal, categorias e metas financeiras.
+FinanceDash é uma aplicação de gestão financeira para freelancers, MEIs e pequenos negócios controlarem receitas, despesas, saldo mensal, categorias e metas — com o **FinanceDash Radar**, um copiloto financeiro que projeta o resultado do mês, alerta riscos e responde perguntas em linguagem natural.
+
+> 📖 **Documentação técnica completa:** [`docs/DOCUMENTACAO.md`](docs/DOCUMENTACAO.md) — arquitetura, modelo de dados, referência completa da API, segurança, deploy e diagramas.
 
 ## Objetivo
 
-Oferecer uma API REST simples e extensível para registrar lançamentos financeiros, organizar categorias, definir metas mensais e consultar um resumo financeiro mensal com totais, saldo, contagens e agrupamentos por categoria.
+Oferecer uma API REST e um frontend para registrar lançamentos, organizar categorias, definir metas e consultar um resumo mensal — e, sobre essa base, um copiloto (Radar) que transforma os números em projeções, alertas e ações práticas, sempre calculadas de forma determinística no backend.
+
+## Documentação
+
+- 📘 [Documentação técnica](docs/DOCUMENTACAO.md) — arquitetura, modelo de dados, referência da API e diagramas
+- 📗 [Manual do usuário](docs/manual-do-usuario.html) — guia do cliente final (abra no navegador)
+- 🔒 [Política de Privacidade (LGPD)](docs/PRIVACIDADE.md)
+- 🤝 [Guia de contribuição](CONTRIBUTING.md) — setup, padrões e fluxo de trabalho
+- 🧭 [Decisões de arquitetura (ADRs)](docs/adr/) — por que o projeto é como é
+- 🚀 [Página de vendas (one-pager)](docs/one-pager.html) — material de divulgação
 
 ## Stack utilizada
 
@@ -12,13 +23,16 @@ Oferecer uma API REST simples e extensível para registrar lançamentos financei
 - Spring Boot 3
 - Maven
 - Spring Web
+- Spring Security (JWT, stateless)
 - Spring Data JPA
 - Bean Validation
+- Spring AI (copiloto Radar — starter OpenAI)
 - PostgreSQL
 - Docker Compose
 - Swagger/OpenAPI via Springdoc
 - JUnit 5
 - Mockito
+- Playwright (E2E)
 
 ## Funcionalidades
 
@@ -62,6 +76,18 @@ Oferecer uma API REST simples e extensível para registrar lançamentos financei
 - Criar metas mensais
 - Listar metas
 - Listar metas por mês e ano
+
+### FinanceDash Radar (copiloto financeiro)
+
+- Projeção do saldo do fim do mês ("vou fechar positivo?")
+- Safe-to-spend: quanto é seguro gastar até o fim do mês (total e por dia)
+- Recebíveis atrasados e caixa travado por cliente
+- Gap de receita/freela para a meta e preço mínimo do próximo projeto
+- Análise de cortes para alcançar a meta
+- Alertas automáticos (mês negativo, abaixo da meta, cliente atrasado, reserva em risco) com agendamento diário
+- Copiloto em linguagem natural (`POST /api/v1/radar/ask`) via Spring AI — **a IA nunca calcula valores; todo número vem do motor determinístico no backend**
+- Resumo proativo por e-mail (digest) configurável
+- Perfil financeiro do usuário (reserva, custo fixo, horas faturáveis, imposto, margem, meta) que alimenta os cálculos
 
 ### Base para assinatura
 
@@ -140,6 +166,27 @@ Authorization: Bearer {token}
 | PUT | `/api/v1/goals/{id}` | Atualiza meta financeira |
 | DELETE | `/api/v1/goals/{id}` | Remove meta financeira |
 | GET | `/api/v1/goals/monthly?month=7&year=2026` | Lista metas por mês e ano |
+
+### User Settings
+
+| Método | Endpoint | Descrição |
+| --- | --- | --- |
+| GET | `/api/v1/user-settings` | Perfil financeiro (reserva, custo fixo, horas, imposto, margem, meta) |
+| PUT | `/api/v1/user-settings` | Atualiza o perfil financeiro |
+
+### Radar
+
+| Método | Endpoint | Descrição |
+| --- | --- | --- |
+| GET | `/api/v1/radar/month-projection` | Projeção do saldo do mês |
+| GET | `/api/v1/radar/safe-to-spend` | Quanto é seguro gastar (total e por dia) |
+| GET | `/api/v1/radar/overdue-receivables` | Recebíveis atrasados e caixa travado |
+| GET | `/api/v1/radar/freelance-gap` | Falta de receita para a meta e horas extras |
+| GET | `/api/v1/radar/minimum-project-price?estimatedHours=20` | Preço mínimo do próximo projeto |
+| GET | `/api/v1/radar/cut-analysis` | O que cortar para bater a meta |
+| POST | `/api/v1/radar/ask` | Copiloto IA (pergunta em linguagem natural) |
+| GET | `/api/v1/radar/alerts?unreadOnly=false` | Lista alertas do Radar |
+| POST | `/api/v1/radar/alerts/{id}/read` | Marca alerta como lido |
 
 ## Exemplos de payload
 
@@ -291,7 +338,7 @@ Crie um banco PostgreSQL com:
 Depois execute:
 
 ```powershell
-cd C:\Users\Daniel\projetos\finance-dash
+cd finance-dash
 mvn spring-boot:run
 ```
 
@@ -315,6 +362,10 @@ $env:ASAAS_ENABLED="false"
 $env:ASAAS_API_KEY=""
 $env:ASAAS_WEBHOOK_TOKEN=""
 $env:MAIL_ENABLED="false"
+# IA do Radar (opcional): "none" mantém o modo determinístico; defina o provider e a chave para ativar /radar/ask
+$env:SPRING_AI_CHAT_MODEL="none"
+$env:OPENAI_API_KEY=""
+$env:OPENAI_MODEL="gpt-4o-mini"
 ```
 
 ### Asaas (checkout Pro)
@@ -341,7 +392,7 @@ Pré-requisitos:
 Execute:
 
 ```powershell
-cd C:\Users\Daniel\projetos\finance-dash
+cd finance-dash
 docker compose up --build
 ```
 
@@ -402,9 +453,9 @@ O JSON OpenAPI fica disponível em:
 http://localhost:8080/v3/api-docs
 ```
 
-## Frontend MVP
+## Frontend
 
-O projeto possui um frontend estático inicial servido pelo próprio Spring Boot.
+O projeto possui um frontend estático servido pelo próprio Spring Boot, com as visões Dashboard e Radar.
 
 Com a aplicação rodando, acesse:
 
@@ -426,6 +477,8 @@ src/main/resources/static/
     ├── categories.js
     ├── dashboard.js
     ├── goals.js
+    ├── radar.js
+    ├── settings.js
     └── transactions.js
 ```
 
@@ -443,6 +496,9 @@ Funcionalidades iniciais:
 - tabela de lançamentos recentes com filtros por tipo, categoria, tamanho e ordenação;
 - CRUD visual de categorias;
 - CRUD visual de metas mensais com barra de progresso;
+- aba Radar: projeção do mês, safe-to-spend, alertas e chat do copiloto;
+- tela de perfil financeiro (configurações do Radar);
+- modais (confirmação, edição, gráfico) com fechamento por Esc e restauração de foco;
 - confirmação visual para exclusões e estados de loading em ações principais.
 
 ## Testes
@@ -450,7 +506,7 @@ Funcionalidades iniciais:
 Execute:
 
 ```powershell
-cd C:\Users\Daniel\projetos\finance-dash
+cd finance-dash
 mvn test
 ```
 
@@ -466,7 +522,7 @@ npm run test:e2e
 Execute:
 
 ```powershell
-cd C:\Users\Daniel\projetos\finance-dash
+cd finance-dash
 mvn clean package
 ```
 

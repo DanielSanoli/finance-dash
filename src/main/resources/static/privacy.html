@@ -4,52 +4,75 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Política de Privacidade — FinanceDash</title>
-    <link rel="stylesheet" href="css/styles.css?v=20260616-3">
+    <link rel="stylesheet" href="css/styles.css?v=20260618-1">
 </head>
 <body class="legal-page">
     <main class="panel legal-card">
         <p class="eyebrow">FinanceDash</p>
         <h1>Política de Privacidade</h1>
-        <p class="subtitle">Última atualização: 16 de junho de 2026</p>
+        <p class="subtitle">Última atualização: junho de 2026</p>
+
+        <p>Esta Política descreve como o <strong>FinanceDash</strong> coleta, usa, armazena e protege os dados pessoais dos usuários, em conformidade com a <strong>Lei Geral de Proteção de Dados (Lei nº 13.709/2018 — LGPD)</strong>. Ao criar uma conta e utilizar o serviço, você declara estar ciente desta Política.</p>
 
         <section>
-            <h2>1. Quem somos</h2>
-            <p>O FinanceDash é um dashboard financeiro para freelancers, MEIs e pequenos negócios. Esta política descreve como tratamos dados pessoais conforme a LGPD (Lei nº 13.709/2018).</p>
+            <h2>1. Controlador dos dados</h2>
+            <p>O controlador dos dados é o responsável pelo FinanceDash. Contato / Encarregado (DPO): <a href="mailto:daniel.sanoli28@gmail.com">daniel.sanoli28@gmail.com</a>.</p>
         </section>
 
         <section>
             <h2>2. Dados coletados</h2>
             <ul>
-                <li>Dados de cadastro: nome, email e senha (armazenada com hash).</li>
-                <li>Dados financeiros: lançamentos, categorias, metas e preferências de uso.</li>
-                <li>Dados de assinatura: plano, status, identificadores do gateway Asaas e datas de trial/renovação.</li>
-                <li>Dados técnicos mínimos: logs de erro e auditoria sem conteúdo de senha ou token.</li>
+                <li><strong>Cadastro e conta:</strong> nome, e-mail, senha (armazenada com hash BCrypt — nunca em texto puro) e status de verificação de e-mail.</li>
+                <li><strong>Dados financeiros inseridos por você:</strong> lançamentos (descrição, valor, data, vencimento, status, observações), categorias, metas, nome de clientes em recebíveis e perfil financeiro (reserva, custo fixo, horas, imposto, margem, meta).</li>
+                <li><strong>Assinatura:</strong> plano, status, datas de trial/assinatura e identificadores junto ao gateway Asaas.</li>
+                <li><strong>Técnicos:</strong> tokens de autenticação (JWT e refresh) e logs de operação sem conteúdo sensível.</li>
             </ul>
+            <p>Não armazenamos dados de cartão de crédito — o processamento de pagamentos é feito pela Asaas.</p>
         </section>
 
         <section>
-            <h2>3. Finalidade e base legal</h2>
-            <p>Usamos os dados para autenticar usuários, isolar informações por conta, exibir o dashboard, processar assinaturas e cumprir obrigações legais. A base legal inclui execução de contrato e legítimo interesse para segurança da plataforma.</p>
+            <h2>3. Finalidade</h2>
+            <p>Usamos os dados para: prestar o serviço (lançamentos, dashboard, metas e projeções do Radar); autenticação e segurança; cobrança da assinatura; e comunicações transacionais (verificação de e-mail, redefinição de senha e resumos do Radar). <strong>Não vendemos seus dados</strong> nem os usamos para publicidade de terceiros.</p>
         </section>
 
         <section>
-            <h2>4. Compartilhamento</h2>
-            <p>Não vendemos dados pessoais. Compartilhamos informações apenas com provedores necessários ao serviço, como o gateway de pagamento Asaas, quando a cobrança estiver habilitada.</p>
+            <h2>4. Base legal (LGPD)</h2>
+            <p>O tratamento se fundamenta em: execução de contrato (art. 7º, V); consentimento (art. 7º, I); cumprimento de obrigação legal/regulatória (art. 7º, II); e legítimo interesse (art. 7º, IX) para segurança e melhoria do serviço, respeitados os seus direitos.</p>
         </section>
 
         <section>
-            <h2>5. Retenção e segurança</h2>
-            <p>Os dados são mantidos enquanto a conta estiver ativa ou enquanto necessário para cumprir obrigações legais. Aplicamos criptografia de senha, JWT, isolamento por usuário e sanitização de logs sensíveis.</p>
+            <h2>5. Inteligência Artificial (Radar)</h2>
+            <p>O copiloto do Radar pode usar um provedor de modelo de linguagem (OpenAI) para interpretar suas perguntas e redigir respostas. Nesses casos, são enviados o texto da pergunta e os resultados numéricos necessários. Os <strong>cálculos financeiros são feitos no nosso backend</strong> — o modelo de IA não realiza os cálculos — e o uso da IA é opcional. Recomenda-se não inserir dados sensíveis desnecessários nas perguntas.</p>
         </section>
 
         <section>
-            <h2>6. Direitos do titular</h2>
-            <p>Você pode solicitar acesso, correção, portabilidade, anonimização, eliminação ou revogação de consentimento pelo email de contato abaixo.</p>
+            <h2>6. Compartilhamento</h2>
+            <p>Compartilhamos dados apenas com operadores essenciais ao serviço: Asaas (pagamentos), provedor de IA (apenas quando o copiloto é usado), provedor de e-mail/SMTP e provedor de hospedagem/banco de dados. Não há compartilhamento para fins de marketing.</p>
         </section>
 
         <section>
-            <h2>7. Contato</h2>
-            <p>Para dúvidas sobre privacidade: <a href="mailto:privacidade@financedash.com">privacidade@financedash.com</a></p>
+            <h2>7. Armazenamento e segurança</h2>
+            <p>Adotamos medidas como: senhas com hash BCrypt; autenticação stateless via JWT e refresh tokens revogáveis; HTTPS em produção; isolamento por usuário (cada conta acessa somente os próprios dados); e limite de tentativas de login. Nenhum sistema é 100% imune; em caso de incidente relevante, adotaremos as providências previstas na LGPD.</p>
+        </section>
+
+        <section>
+            <h2>8. Retenção e exclusão</h2>
+            <p>Mantemos seus dados enquanto a conta estiver ativa. Você pode solicitar a exclusão da conta e dos dados associados pelo contato da seção 1. Alguns dados podem ser retidos por prazo legal quando houver obrigação aplicável.</p>
+        </section>
+
+        <section>
+            <h2>9. Seus direitos (art. 18 da LGPD)</h2>
+            <p>Você pode solicitar: confirmação da existência de tratamento; acesso; correção; anonimização, bloqueio ou eliminação de dados desnecessários ou tratados em desconformidade; portabilidade; eliminação dos dados tratados com base no consentimento; informação sobre compartilhamentos; e revogação do consentimento. Para exercer qualquer direito, escreva para <a href="mailto:daniel.sanoli28@gmail.com">daniel.sanoli28@gmail.com</a>.</p>
+        </section>
+
+        <section>
+            <h2>10. Cookies e armazenamento local</h2>
+            <p>A aplicação usa o armazenamento local do navegador (localStorage) para guardar os tokens de sessão e manter você autenticado. Esses dados ficam no seu dispositivo e podem ser limpos ao sair da conta ou limpar o navegador.</p>
+        </section>
+
+        <section>
+            <h2>11. Alterações</h2>
+            <p>Podemos atualizar esta Política periodicamente. A data de "última atualização" no topo indica a versão vigente; mudanças relevantes poderão ser comunicadas pelos canais da aplicação.</p>
         </section>
 
         <p><a href="/">Voltar ao FinanceDash</a></p>

@@ -348,7 +348,7 @@ A aplicação ficará disponível em:
 http://localhost:8080
 ```
 
-Variáveis de ambiente suportadas:
+Variáveis de ambiente suportadas (veja também `.env.example` na raiz do projeto):
 
 ```powershell
 $env:DATABASE_URL="jdbc:postgresql://localhost:5432/financedash"
@@ -360,7 +360,9 @@ $env:JWT_EXPIRATION_SECONDS="86400"
 $env:PUBLIC_BASE_URL="http://localhost:8080"
 $env:ASAAS_ENABLED="false"
 $env:ASAAS_API_KEY=""
+$env:ASAAS_BASE_URL="https://api-sandbox.asaas.com/v3"
 $env:ASAAS_WEBHOOK_TOKEN=""
+$env:ASAAS_PRO_PLAN_VALUE="29.90"
 $env:MAIL_ENABLED="false"
 # IA do Radar (opcional): "none" mantém o modo determinístico; defina o provider e a chave para ativar /radar/ask
 $env:SPRING_AI_CHAT_MODEL="none"
@@ -368,19 +370,22 @@ $env:OPENAI_API_KEY=""
 $env:OPENAI_MODEL="gpt-4o-mini"
 ```
 
+Com `ASAAS_ENABLED=true`, a aplicação valida no startup que `ASAAS_API_KEY`, `ASAAS_BASE_URL` e `ASAAS_WEBHOOK_TOKEN` estão definidos; caso contrário, a inicialização é abortada com mensagem clara.
+
 ### Asaas (checkout Pro)
 
-Para habilitar cobrança real no sandbox ou produção:
+Para habilitar cobrança real no sandbox ou produção (com `ASAAS_ENABLED=true`, `ASAAS_API_KEY`, `ASAAS_BASE_URL` e `ASAAS_WEBHOOK_TOKEN` são obrigatórios):
 
 ```powershell
 $env:ASAAS_ENABLED="true"
 $env:ASAAS_API_KEY="sua-chave-asaas"
 $env:ASAAS_BASE_URL="https://api-sandbox.asaas.com/v3"
 $env:ASAAS_WEBHOOK_TOKEN="token-configurado-no-asaas"
+$env:ASAAS_PRO_PLAN_VALUE="29.90"
 $env:PUBLIC_BASE_URL="https://seu-dominio.com"
 ```
 
-Configure no painel Asaas um webhook apontando para `POST /api/v1/billing/webhook` com o header `asaas-access-token`.
+Configure no painel Asaas um webhook apontando para `POST /api/v1/billing/webhook` com o header `asaas-access-token` usando o mesmo valor de `ASAAS_WEBHOOK_TOKEN`.
 
 ## Como rodar com Docker Compose
 

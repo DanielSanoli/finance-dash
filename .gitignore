@@ -31,5 +31,8 @@ node_modules/
 playwright-report/
 test-results/
 
+### Environment ###
+.env
+
 ### Mac OS ###
 .DS_Store

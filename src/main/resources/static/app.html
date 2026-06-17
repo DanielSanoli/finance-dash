@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinanceDash</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css?v=20260618-1">
+</head>
+<body>
+    <header class="app-header">
+        <div>
+            <p class="eyebrow">FinanceDash</p>
+            <h1 id="app-page-title">Dashboard financeiro</h1>
+            <p id="app-page-subtitle" class="subtitle">Controle receitas, despesas, categorias e metas em uma visão mensal.</p>
+        </div>
+        <div class="header-actions">
+            <div class="period-filter hidden" id="period-filter" aria-label="Filtro de período">
+                <label for="month">Mês</label>
+                <select id="month"></select>
+                <label for="year">Ano</label>
+                <input id="year" type="number" min="1900" max="2999">
+                <button id="reload-dashboard" type="button">Atualizar</button>
+            </div>
+            <div class="period-filter radar-period hidden" id="radar-period" aria-label="Período do Radar">
+                <span id="radar-period-label">Mês corrente</span>
+                <button id="reload-radar" class="button-secondary" type="button">Atualizar</button>
+            </div>
+            <div id="user-menu" class="user-menu hidden">
+                <span id="user-menu-name"></span>
+                <button id="account-button" class="button-secondary" type="button">Conta</button>
+                <button id="logout-button" class="button-secondary" type="button">Sair</button>
+            </div>
+        </div>
+    </header>
+
+    <section id="auth-section" class="auth-layout">
+        <article class="panel auth-card">
+            <p class="eyebrow">Acesso ao FinanceDash</p>
+            <h2>Entre ou crie sua conta</h2>
+            <p class="subtitle">Cada conta acessa apenas seus próprios lançamentos, categorias, metas e dashboard.</p>
+            <div class="auth-tabs">
+                <button id="login-tab" type="button">Login</button>
+                <button id="register-tab" class="button-secondary" type="button">Cadastro</button>
+            </div>
+            <form id="login-form" class="form auth-form">
+                <label class="full-width">
+                    Email
+                    <input name="email" type="email" value="demo@financedash.com" required>
+                </label>
+                <label class="full-width">
+                    Senha
+                    <input name="password" type="password" value="demo12345" required>
+                </label>
+                <button id="login-submit" type="submit">Entrar</button>
+                <button id="forgot-tab" class="link-button" type="button">Esqueci minha senha</button>
+                <p id="login-feedback" class="feedback" role="status"></p>
+            </form>
+            <form id="forgot-form" class="form auth-form hidden">
+                <label class="full-width">
+                    Email
+                    <input name="email" type="email" placeholder="voce@email.com" required>
+                </label>
+                <button id="forgot-submit" type="submit">Enviar link de recuperação</button>
+                <button id="forgot-back" class="link-button" type="button">Voltar ao login</button>
+                <p id="forgot-feedback" class="feedback" role="status"></p>
+            </form>
+            <form id="reset-form" class="form auth-form hidden">
+                <input id="reset-token" name="token" type="hidden">
+                <label class="full-width">
+                    Nova senha
+                    <input name="password" type="password" minlength="8" placeholder="Mínimo 8 caracteres" required>
+                </label>
+                <button id="reset-submit" type="submit">Redefinir senha</button>
+                <p id="reset-feedback" class="feedback" role="status"></p>
+            </form>
+            <form id="register-form" class="form auth-form hidden">
+                <label class="full-width">
+                    Nome
+                    <input name="name" type="text" placeholder="Seu nome" required>
+                </label>
+                <label class="full-width">
+                    Email
+                    <input name="email" type="email" placeholder="voce@email.com" required>
+                </label>
+                <label class="full-width">
+                    Senha
+                    <input name="password" type="password" minlength="8" placeholder="Mínimo 8 caracteres" required>
+                </label>
+                <button id="register-submit" type="submit">Criar conta</button>
+                <p id="register-feedback" class="feedback" role="status"></p>
+            </form>
+        </article>
+    </section>
+
+    <main id="app-content" class="layout hidden">
+        <section id="subscription-warning" class="subscription-warning hidden" role="alert">
+            <strong id="subscription-warning-title">Acesso bloqueado</strong>
+            <span id="subscription-warning-message">Atualize seu plano para voltar a usar o dashboard.</span>
+        </section>
+
+        <nav class="app-tabs" aria-label="Navegação principal">
+            <button class="tab active" type="button" data-app-view="dashboard">Dashboard</button>
+            <button class="tab" type="button" data-app-view="radar">Radar</button>
+        </nav>
+
+        <section id="account-panel" class="panel account-panel hidden">
+            <div class="panel-header">
+                <div>
+                    <h2>Conta e billing</h2>
+                    <span>Trial, assinatura Pro e status de acesso</span>
+                </div>
+                <div class="panel-header-actions">
+                    <span id="account-access-badge" class="account-badge">Acesso ativo</span>
+                    <button id="account-close-button" class="button-secondary account-close" type="button">Fechar</button>
+                </div>
+            </div>
+            <div class="account-grid">
+                <article class="account-item">
+                    <span>Usuário</span>
+                    <strong id="account-name">-</strong>
+                    <small id="account-email">-</small>
+                    <small id="account-email-verified">-</small>
+                </article>
+                <article class="account-item">
+                    <span>Plano</span>
+                    <strong id="account-plan">FREE</strong>
+                    <small id="account-status">Trial</small>
+                </article>
+                <article class="account-item">
+                    <span>Trial</span>
+                    <strong id="account-trial-days">0 dias</strong>
+                    <small id="account-trial-ends">Sem data</small>
+                </article>
+                <article class="account-item">
+                    <span>Assinatura</span>
+                    <strong id="account-subscription-status">TRIALING</strong>
+                    <small id="account-subscription-ends">Aguardando confirmação de pagamento</small>
+                </article>
+            </div>
+            <div class="account-actions">
+                <button id="checkout-pro-button" type="button">Assinar Pro</button>
+                <p id="checkout-feedback" class="feedback" role="status"></p>
+            </div>
+        </section>
+
+        <div id="dashboard-view" class="view-stack">
+        <section class="cards summary-cards" aria-label="Resumo mensal">
+            <article class="card income">
+                <span>Receitas</span>
+                <strong id="total-income">R$ 0,00</strong>
+                <small id="income-count">0 lançamentos</small>
+            </article>
+            <article class="card expense">
+                <span>Despesas</span>
+                <strong id="total-expense">R$ 0,00</strong>
+                <small id="expense-count">0 lançamentos</small>
+            </article>
+            <article class="card balance">
+                <span>Saldo</span>
+                <strong id="balance">R$ 0,00</strong>
+                <small id="transaction-count">0 lançamentos no mês</small>
+            </article>
+        </section>
+
+        <section class="insights-grid" aria-label="Insights do mês">
+            <article class="insight-card">
+                <span>Taxa de economia</span>
+                <strong id="savings-rate">0,00%</strong>
+                <small id="savings-rate-caption">Saldo em relação às receitas</small>
+            </article>
+            <article class="insight-card">
+                <span>Média por lançamento</span>
+                <strong id="average-transaction">R$ 0,00</strong>
+                <small>Receitas e despesas do mês</small>
+            </article>
+            <article class="insight-card">
+                <span>Maior despesa</span>
+                <strong id="top-expense-category">-</strong>
+                <small id="top-expense-amount">Sem despesas no período</small>
+            </article>
+            <article class="insight-card">
+                <span>Maior receita</span>
+                <strong id="top-income-category">-</strong>
+                <small id="top-income-amount">Sem receitas no período</small>
+            </article>
+        </section>
+
+        <section class="panel" id="financial-profile-panel">
+            <div class="panel-header">
+                <div>
+                    <h2>Perfil financeiro</h2>
+                    <span>Reserva, custos fixos e parâmetros do Radar</span>
+                </div>
+            </div>
+            <form id="settings-form" class="form compact-form">
+                <label>
+                    Meta de receita mensal
+                    <input name="monthlyIncomeGoal" type="number" min="0" step="0.01" placeholder="Ex.: 8000">
+                </label>
+                <label>
+                    Reserva alvo
+                    <input name="monthlyReserveTarget" type="number" min="0" step="0.01" placeholder="Ex.: 15000">
+                </label>
+                <label>
+                    Custo fixo mensal
+                    <input name="monthlyFixedCost" type="number" min="0" step="0.01" placeholder="Ex.: 3200">
+                </label>
+                <label>
+                    Horas faturáveis / mês
+                    <input name="billableHoursPerMonth" type="number" min="0" step="1" placeholder="Ex.: 120">
+                </label>
+                <label>
+                    Alíquota de impostos (%)
+                    <input name="taxRatePercent" type="number" min="0" max="99" step="0.01" placeholder="Ex.: 6">
+                </label>
+                <label>
+                    Margem desejada (%)
+                    <input name="desiredMarginPercent" type="number" min="0" max="99" step="0.01" placeholder="Ex.: 30">
+                </label>
+                <label>
+                    Digest do Radar
+                    <select name="digestFrequency">
+                        <option value="NONE">Não enviar</option>
+                        <option value="DAILY">Diário</option>
+                        <option value="WEEKLY">Semanal</option>
+                    </select>
+                </label>
+                <button id="settings-submit" type="submit">Salvar perfil</button>
+                <p id="settings-feedback" class="feedback" role="status"></p>
+            </form>
+        </section>
+
+        <section class="grid two-columns charts-grid">
+            <article class="panel chart-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Despesas por categoria</h2>
+                        <span id="expense-period"></span>
+                    </div>
+                    <button class="button-secondary chart-expand" type="button" data-chart="expenses">Ampliar</button>
+                </div>
+                <div class="chart-shell">
+                    <canvas id="expenses-chart" height="150"></canvas>
+                </div>
+            </article>
+            <article class="panel chart-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Receitas por categoria</h2>
+                        <span id="income-period"></span>
+                    </div>
+                    <button class="button-secondary chart-expand" type="button" data-chart="incomes">Ampliar</button>
+                </div>
+                <div class="chart-shell">
+                    <canvas id="incomes-chart" height="150"></canvas>
+                </div>
+            </article>
+        </section>
+
+        <section class="grid two-columns panel-row">
+            <article class="panel">
+                <div class="panel-header">
+                    <h2>Novo lançamento</h2>
+                    <span>Receita ou despesa</span>
+                </div>
+                <form id="transaction-form" class="form">
+                    <input id="transaction-id" name="transactionId" type="hidden">
+                    <label>
+                        Descrição
+                        <input name="description" type="text" placeholder="Ex.: Projeto website" required>
+                    </label>
+                    <label>
+                        Valor
+                        <input name="amount" type="number" min="0.01" step="0.01" placeholder="0.00" required>
+                    </label>
+                    <label>
+                        Tipo
+                        <select name="type" id="transaction-type" required>
+                            <option value="INCOME">Receita</option>
+                            <option value="EXPENSE">Despesa</option>
+                        </select>
+                    </label>
+                    <label>
+                        Categoria
+                        <select name="categoryId" id="transaction-category" required></select>
+                    </label>
+                    <label>
+                        Data
+                        <input name="transactionDate" type="date" required>
+                    </label>
+                    <fieldset class="full-width radar-fields">
+                        <legend>Detalhes para o Radar</legend>
+                        <label>
+                            Status
+                            <select name="status" id="transaction-status">
+                                <option value="PAID">Pago / recebido</option>
+                                <option value="PENDING">Pendente (recebível ou a pagar)</option>
+                                <option value="OVERDUE">Atrasado</option>
+                            </select>
+                        </label>
+                        <label data-radar-field="dueDate">
+                            Vencimento
+                            <input name="dueDate" type="date" id="transaction-due-date">
+                        </label>
+                        <label data-radar-field="clientName" class="full-width">
+                            Cliente
+                            <input name="clientName" type="text" placeholder="Ex.: Marcos">
+                        </label>
+                        <label class="checkbox-label full-width">
+                            <input name="isRecurring" type="checkbox" id="transaction-recurring">
+                            <span>Lançamento recorrente (fixo mensal)</span>
+                        </label>
+                        <label data-radar-field="recurrenceRule">
+                            Recorrência
+                            <select name="recurrenceRule" id="transaction-recurrence">
+                                <option value="MONTHLY">Mensal</option>
+                                <option value="WEEKLY">Semanal</option>
+                                <option value="YEARLY">Anual</option>
+                            </select>
+                        </label>
+                        <label data-radar-field="nonEssential" class="checkbox-label full-width">
+                            <input name="nonEssential" type="checkbox" id="transaction-non-essential">
+                            <span>Despesa não essencial (candidata a corte)</span>
+                        </label>
+                    </fieldset>
+                    <label>
+                        Método de pagamento
+                        <input name="paymentMethod" type="text" placeholder="PIX, Cartão, Dinheiro">
+                    </label>
+                    <label class="full-width">
+                        Observações
+                        <textarea name="notes" rows="3" placeholder="Detalhes opcionais"></textarea>
+                    </label>
+                    <button id="transaction-submit" type="submit">Salvar lançamento</button>
+                    <p id="transaction-feedback" class="feedback" role="status"></p>
+                </form>
+            </article>
+
+            <article class="panel">
+                <div class="panel-header">
+                    <h2>Lançamentos recentes</h2>
+                    <span id="transactions-total">0 registros</span>
+                </div>
+                <form id="transaction-filters" class="filters" aria-label="Filtros de lançamentos">
+                    <label>
+                        Tipo
+                        <select id="transaction-filter-type" name="type">
+                            <option value="">Todos</option>
+                            <option value="INCOME">Receitas</option>
+                            <option value="EXPENSE">Despesas</option>
+                        </select>
+                    </label>
+                    <label>
+                        Categoria
+                        <select id="transaction-filter-category" name="categoryId"></select>
+                    </label>
+                    <label>
+                        Registros
+                        <select name="size">
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                            <option value="50">50</option>
+                        </select>
+                    </label>
+                    <label>
+                        Ordenar
+                        <select name="sort">
+                            <option value="transactionDate,desc">Mais recentes</option>
+                            <option value="transactionDate,asc">Mais antigos</option>
+                            <option value="amount,desc">Maior valor</option>
+                            <option value="amount,asc">Menor valor</option>
+                        </select>
+                    </label>
+                    <div class="filter-actions">
+                        <button type="submit">Aplicar filtros</button>
+                        <button id="transaction-filters-reset" class="button-secondary" type="button">Limpar</button>
+                    </div>
+                </form>
+                <div class="table-wrapper">
+                    <table class="transactions-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Descrição</th>
+                                <th>Categoria</th>
+                                <th>Tipo</th>
+                                <th>Valor</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactions-table"></tbody>
+                    </table>
+                </div>
+                <nav class="pagination" id="transactions-pagination" aria-label="Paginação de lançamentos">
+                    <button id="transactions-prev" class="button-secondary" type="button" disabled>Anterior</button>
+                    <span id="transactions-page-label" class="pagination-label">Página 1 de 1</span>
+                    <button id="transactions-next" class="button-secondary" type="button" disabled>Próxima</button>
+                </nav>
+            </article>
+        </section>
+
+        <section class="grid two-columns panel-row">
+            <article class="panel">
+                <div class="panel-header">
+                    <h2>Categorias</h2>
+                    <span>Organize receitas e despesas</span>
+                </div>
+                <form id="category-form" class="form compact-form">
+                    <input id="category-id" name="categoryId" type="hidden">
+                    <label>
+                        Nome
+                        <input name="name" type="text" placeholder="Ex.: Assinaturas" required>
+                    </label>
+                    <label>
+                        Tipo
+                        <select name="type" required>
+                            <option value="INCOME">Receita</option>
+                            <option value="EXPENSE">Despesa</option>
+                        </select>
+                    </label>
+                    <label>
+                        Cor
+                        <input name="color" type="color" value="#38bdf8" required>
+                    </label>
+                    <button id="category-submit" type="submit">Salvar categoria</button>
+                    <button id="category-cancel" class="button-secondary hidden" type="button">Cancelar edição</button>
+                    <p id="category-feedback" class="feedback" role="status"></p>
+                </form>
+                <div id="categories-list" class="stack-list"></div>
+            </article>
+
+            <article class="panel">
+                <div class="panel-header">
+                    <h2>Nova meta</h2>
+                    <span>Receita, despesa ou economia</span>
+                </div>
+                <form id="goal-form" class="form compact-form">
+                    <input id="goal-id" name="goalId" type="hidden">
+                    <label class="full-width">
+                        Título
+                        <input name="title" type="text" placeholder="Ex.: Economizar para reserva" required>
+                    </label>
+                    <label>
+                        Mês
+                        <input name="month" type="number" min="1" max="12" required>
+                    </label>
+                    <label>
+                        Ano
+                        <input name="year" type="number" min="1900" max="2999" required>
+                    </label>
+                    <label>
+                        Valor alvo
+                        <input name="targetAmount" type="number" min="0.01" step="0.01" placeholder="0.00" required>
+                    </label>
+                    <label>
+                        Tipo
+                        <select id="goal-type" name="type" required>
+                            <option value="SAVINGS_TARGET">Economia</option>
+                            <option value="INCOME_TARGET">Meta de receita</option>
+                            <option value="EXPENSE_LIMIT">Limite de despesa</option>
+                        </select>
+                    </label>
+                    <label class="full-width">
+                        Categoria
+                        <select id="goal-category" name="categoryId"></select>
+                    </label>
+                    <button id="goal-submit" type="submit">Salvar meta</button>
+                    <button id="goal-cancel" class="button-secondary hidden" type="button">Cancelar edição</button>
+                    <p id="goal-feedback" class="feedback" role="status"></p>
+                </form>
+            </article>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <h2>Metas do mês</h2>
+                <span>Progresso calculado automaticamente</span>
+            </div>
+            <div id="goals-list" class="goals-list"></div>
+        </section>
+        </div>
+
+        <div id="radar-view" class="hidden view-stack" aria-label="Radar financeiro">
+            <section id="radar-setup-banner" class="panel radar-setup hidden">
+                <div class="setup-banner">
+                    <div>
+                        <h2>Configure seu perfil financeiro para ativar o Radar</h2>
+                        <p>Informe reserva, custo fixo, horas faturáveis e meta de receita para projeções e alertas confiáveis.</p>
+                    </div>
+                    <button id="radar-setup-button" type="button">Configurar perfil</button>
+                </div>
+            </section>
+
+            <div id="radar-data-sections" class="view-stack">
+            <section class="panel radar-hero-panel pos" id="radar-hero-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Seu mês</h2>
+                        <span>Projeção do mês corrente</span>
+                    </div>
+                </div>
+                <div class="radar-hero">
+                    <div class="hero-main">
+                        <p class="hero-label">Saldo projetado no fim do mês</p>
+                        <div id="radar-projected-balance" class="hero-value pos">-</div>
+                        <span id="radar-projection-badge" class="status-badge pos">Carregando...</span>
+                        <details class="assumptions">
+                            <summary>Ver premissas</summary>
+                            <ul id="radar-projection-assumptions"></ul>
+                        </details>
+                    </div>
+                    <div class="gauge">
+                        <div class="gauge-stats">
+                            <div class="gauge-stat">
+                                <span>Saldo atual</span>
+                                <strong id="radar-current-balance">-</strong>
+                            </div>
+                            <div class="gauge-stat">
+                                <span>Meta do mês</span>
+                                <strong id="radar-month-goal">-</strong>
+                            </div>
+                            <div class="gauge-stat">
+                                <span>Reserva alvo</span>
+                                <strong id="radar-reserve-target">-</strong>
+                            </div>
+                            <div class="gauge-stat accent">
+                                <span>Pode gastar</span>
+                                <strong id="radar-gauge-safe">-</strong>
+                            </div>
+                        </div>
+                        <div class="gauge-bar" id="radar-gauge-bar-wrap" hidden>
+                            <div class="gauge-bar-fill" id="radar-gauge-bar"></div>
+                        </div>
+                        <small id="radar-gauge-caption" class="gauge-caption">Carregando projeção...</small>
+                    </div>
+                </div>
+            </section>
+
+            <section class="cards radar-cards" aria-label="Indicadores do Radar">
+                <article class="card safe metric-card">
+                    <span class="metric-icon" aria-hidden="true">✓</span>
+                    <span>Pode gastar com segurança</span>
+                    <strong id="radar-safe-total">-</strong>
+                    <small id="radar-safe-caption">-</small>
+                </article>
+                <article class="card blocked metric-card">
+                    <span class="metric-icon" aria-hidden="true">!</span>
+                    <span>Caixa travado (atrasados)</span>
+                    <strong id="radar-blocked-total">-</strong>
+                    <small id="radar-blocked-caption">-</small>
+                </article>
+                <article class="card freela metric-card">
+                    <span class="metric-icon" aria-hidden="true">◎</span>
+                    <span>Precisa de mais um freela?</span>
+                    <strong id="radar-freela-answer">-</strong>
+                    <small id="radar-freela-caption">-</small>
+                </article>
+            </section>
+
+            <section class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Alertas do Radar</h2>
+                        <span>Gerados pelo motor de regras</span>
+                    </div>
+                    <span id="radar-alerts-count" class="muted-label">0 ativo(s)</span>
+                </div>
+                <div id="radar-alerts-list"></div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Quem está travando seu caixa</h2>
+                        <span>Recebíveis vencidos</span>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="radar-table">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th class="num">Valor</th>
+                                <th class="num">Atraso</th>
+                                <th class="num">Impacto</th>
+                            </tr>
+                        </thead>
+                        <tbody id="radar-overdue-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="grid two-columns panel-row radar-tools">
+                <article class="panel mini">
+                    <h3>Preço mínimo do próximo projeto</h3>
+                    <p>Piso por hora: <strong id="radar-min-hourly-rate">-</strong></p>
+                    <div class="inline-input">
+                        <input id="radar-min-price-hours" type="number" value="20" min="1" step="1" aria-label="Horas estimadas">
+                        <button id="radar-min-price-calc" type="button">Calcular</button>
+                    </div>
+                    <p class="mini-result">Para as horas informadas: <span class="big" id="radar-min-price-output">-</span></p>
+                    <small id="radar-min-price-footnote" class="mini-footnote">Valores calculados pelo motor do Radar.</small>
+                </article>
+                <article class="panel mini">
+                    <h3>O que cortar para bater a meta</h3>
+                    <p>Saldo projetado: <strong id="radar-cut-gap">-</strong></p>
+                    <p class="mini-subtitle" id="radar-cut-after">-</p>
+                    <table class="radar-table compact">
+                        <tbody id="radar-cut-body"></tbody>
+                    </table>
+                    <small id="radar-cut-footnote" class="mini-footnote">-</small>
+                </article>
+            </section>
+
+            <section class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Pergunte ao Radar</h2>
+                        <span>Copiloto financeiro</span>
+                    </div>
+                </div>
+                <div class="chat">
+                    <div class="chips" id="radar-chips"></div>
+                    <div class="stream" id="radar-chat-stream">
+                        <div class="msg bot">
+                            Oi! Sou o seu Radar. Pergunte sobre seu mês — ou toque numa das sugestões acima.
+                            <span class="disc">Sugestão, não consultoria financeira.</span>
+                        </div>
+                    </div>
+                    <div class="composer">
+                        <input id="radar-ask-input" type="text" placeholder="Ex.: Quanto posso gastar até o fim do mês?" aria-label="Pergunta ao Radar">
+                        <button id="radar-ask-send" type="button">Enviar</button>
+                    </div>
+                </div>
+            </section>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="confirm-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
+        <div class="modal-card">
+            <h2 id="confirm-modal-title">Confirmar ação</h2>
+            <p id="confirm-modal-message" class="subtitle"></p>
+            <div class="modal-actions">
+                <button id="confirm-modal-cancel" class="button-secondary" type="button">Cancelar</button>
+                <button id="confirm-modal-confirm" type="button">Confirmar</button>
+            </div>
+        </div>
+    </div>
+    <div id="transaction-edit-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="transaction-edit-title">
+        <div class="modal-card wide">
+            <div class="modal-header">
+                <div>
+                    <h2 id="transaction-edit-title">Editar lançamento</h2>
+                    <p class="subtitle">Atualize os dados sem sair da tabela de lançamentos.</p>
+                </div>
+                <button id="transaction-edit-close" class="icon-button" type="button" aria-label="Fechar modal">×</button>
+            </div>
+            <form id="transaction-edit-form" class="form modal-form">
+                <input name="transactionId" type="hidden">
+                <label>
+                    Descrição
+                    <input name="description" type="text" required>
+                </label>
+                <label>
+                    Valor
+                    <input name="amount" type="number" min="0.01" step="0.01" required>
+                </label>
+                <label>
+                    Tipo
+                    <select name="type" id="transaction-edit-type" required>
+                        <option value="INCOME">Receita</option>
+                        <option value="EXPENSE">Despesa</option>
+                    </select>
+                </label>
+                <label>
+                    Categoria
+                    <select name="categoryId" id="transaction-edit-category" required></select>
+                </label>
+                <label>
+                    Data
+                    <input name="transactionDate" type="date" required>
+                </label>
+                <fieldset class="full-width radar-fields">
+                    <legend>Detalhes para o Radar</legend>
+                    <label>
+                        Status
+                        <select name="status" id="transaction-edit-status">
+                            <option value="PAID">Pago / recebido</option>
+                            <option value="PENDING">Pendente (recebível ou a pagar)</option>
+                            <option value="OVERDUE">Atrasado</option>
+                        </select>
+                    </label>
+                    <label data-radar-field="dueDate">
+                        Vencimento
+                        <input name="dueDate" type="date" id="transaction-edit-due-date">
+                    </label>
+                    <label data-radar-field="clientName" class="full-width">
+                        Cliente
+                        <input name="clientName" type="text" placeholder="Ex.: Marcos">
+                    </label>
+                    <label class="checkbox-label full-width">
+                        <input name="isRecurring" type="checkbox" id="transaction-edit-recurring">
+                        <span>Lançamento recorrente (fixo mensal)</span>
+                    </label>
+                    <label data-radar-field="recurrenceRule">
+                        Recorrência
+                        <select name="recurrenceRule" id="transaction-edit-recurrence">
+                            <option value="MONTHLY">Mensal</option>
+                            <option value="WEEKLY">Semanal</option>
+                            <option value="YEARLY">Anual</option>
+                        </select>
+                    </label>
+                    <label data-radar-field="nonEssential" class="checkbox-label full-width">
+                        <input name="nonEssential" type="checkbox" id="transaction-edit-non-essential">
+                        <span>Despesa não essencial (candidata a corte)</span>
+                    </label>
+                </fieldset>
+                <label>
+                    Método de pagamento
+                    <input name="paymentMethod" type="text">
+                </label>
+                <label class="full-width">
+                    Observações
+                    <textarea name="notes" rows="3"></textarea>
+                </label>
+                <div class="form-actions">
+                    <button id="transaction-edit-cancel" class="button-secondary" type="button">Cancelar</button>
+                    <button id="transaction-edit-submit" type="submit">Salvar edição</button>
+                </div>
+                <p id="transaction-edit-feedback" class="feedback" role="status"></p>
+            </form>
+        </div>
+    </div>
+    <div id="chart-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="chart-modal-title">
+        <div class="modal-card chart-modal-card">
+            <div class="modal-header">
+                <div>
+                    <h2 id="chart-modal-title">Gráfico ampliado</h2>
+                    <p id="chart-modal-subtitle" class="subtitle"></p>
+                </div>
+                <button id="chart-modal-close" class="icon-button" type="button" aria-label="Fechar gráfico ampliado">×</button>
+            </div>
+            <div class="expanded-chart-shell">
+                <canvas id="expanded-chart" height="360"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <footer class="app-footer">
+        <a href="/privacy.html">Política de privacidade</a>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script src="js/api.js?v=20260618-1"></script>
+    <script src="js/auth.js?v=20260618-1"></script>
+    <script src="js/categories.js?v=20260618-1"></script>
+    <script src="js/dashboard.js?v=20260618-1"></script>
+    <script src="js/transactions.js?v=20260618-1"></script>
+    <script src="js/goals.js?v=20260618-1"></script>
+    <script src="js/settings.js?v=20260618-1"></script>
+    <script src="js/radar.js?v=20260618-1"></script>
+    <script src="js/app.js?v=20260618-1"></script>
+</body>
+</html>
+

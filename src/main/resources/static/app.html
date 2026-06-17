@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css?v=20260618-1">
+    <link rel="stylesheet" href="css/styles.css?v=20260618-2">
 </head>
 <body>
     <header class="app-header">
@@ -39,10 +39,17 @@
 
     <section id="auth-section" class="auth-layout">
         <article class="panel auth-card">
-            <p class="eyebrow">Acesso ao FinanceDash</p>
-            <h2>Entre ou crie sua conta</h2>
-            <p class="subtitle">Cada conta acessa apenas seus próprios lançamentos, categorias, metas e dashboard.</p>
-            <div class="auth-tabs">
+            <div id="auth-default-intro">
+                <p class="eyebrow">Acesso ao FinanceDash</p>
+                <h2>Entre ou crie sua conta</h2>
+                <p class="subtitle">Cada conta acessa apenas seus próprios lançamentos, categorias, metas e dashboard.</p>
+            </div>
+            <div id="auth-reset-intro" class="hidden">
+                <p class="eyebrow">Recuperação de senha</p>
+                <h2>Redefina sua senha</h2>
+                <p class="subtitle">Escolha uma nova senha com pelo menos 8 caracteres para voltar a acessar sua conta.</p>
+            </div>
+            <div id="auth-tabs" class="auth-tabs">
                 <button id="login-tab" type="button">Login</button>
                 <button id="register-tab" class="button-secondary" type="button">Cadastro</button>
             </div>
@@ -72,9 +79,14 @@
                 <input id="reset-token" name="token" type="hidden">
                 <label class="full-width">
                     Nova senha
-                    <input name="password" type="password" minlength="8" placeholder="Mínimo 8 caracteres" required>
+                    <input name="password" type="password" minlength="8" placeholder="Mínimo 8 caracteres" autocomplete="new-password" required>
                 </label>
-                <button id="reset-submit" type="submit">Redefinir senha</button>
+                <label class="full-width">
+                    Confirmar nova senha
+                    <input id="reset-password-confirm" type="password" minlength="8" placeholder="Repita a nova senha" autocomplete="new-password" required>
+                </label>
+                <button id="reset-submit" type="submit">Salvar nova senha</button>
+                <button id="reset-back" class="link-button" type="button">Voltar ao login</button>
                 <p id="reset-feedback" class="feedback" role="status"></p>
             </form>
             <form id="register-form" class="form auth-form hidden">
@@ -758,7 +770,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
     <script src="js/api.js?v=20260618-1"></script>
-    <script src="js/auth.js?v=20260618-1"></script>
+    <script src="js/auth.js?v=20260618-2"></script>
     <script src="js/categories.js?v=20260618-1"></script>
     <script src="js/dashboard.js?v=20260618-1"></script>
     <script src="js/transactions.js?v=20260618-1"></script>

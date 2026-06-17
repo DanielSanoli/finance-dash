@@ -80,7 +80,7 @@ public class AuthService {
         defaultCategoryService.seedForUser(savedUser);
 
         String verificationToken = tokenService.createEmailVerificationToken(savedUser);
-        emailService.sendEmailVerification(email, publicBaseUrl + "/?verify=" + verificationToken);
+        emailService.sendEmailVerification(email, publicBaseUrl + "/app.html?verify=" + verificationToken);
 
         return toAuthResponse(savedUser);
     }
@@ -125,7 +125,7 @@ public class AuthService {
         userRepository.findByEmailIgnoreCase(normalizeEmail(request.email())).ifPresent(user -> {
             String token = tokenService.createPasswordResetToken(user);
             try {
-                emailService.sendPasswordResetEmail(user.getEmail(), publicBaseUrl + "/?reset=" + token);
+                emailService.sendPasswordResetEmail(user.getEmail(), publicBaseUrl + "/app.html?reset=" + token);
             } catch (RuntimeException exception) {
                 log.error(
                         "Falha ao enviar e-mail de recuperacao para conta terminando em {}",

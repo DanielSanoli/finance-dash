@@ -13,6 +13,11 @@ const FinanceDashAuth = (() => {
 
         await handleAuthQueryParams();
 
+        if (isResetFlowActive()) {
+            revealAuthSection();
+            return;
+        }
+
         if (!FinanceDashApi.getToken()) {
             showLoggedOut();
             return;
@@ -48,6 +53,7 @@ const FinanceDashAuth = (() => {
         document.getElementById("register-tab")?.addEventListener("click", () => showAuthForm("register"));
         document.getElementById("forgot-tab")?.addEventListener("click", () => showAuthForm("forgot"));
         document.getElementById("forgot-back")?.addEventListener("click", () => showAuthForm("login"));
+        document.getElementById("reset-back")?.addEventListener("click", () => showAuthForm("login"));
         document.getElementById("login-form")?.addEventListener("submit", handleLogin);
         document.getElementById("register-form")?.addEventListener("submit", handleRegister);
         document.getElementById("forgot-form")?.addEventListener("submit", handleForgotPassword);
@@ -80,11 +86,24 @@ const FinanceDashAuth = (() => {
         }
 
         if (resetToken) {
-            showLoggedOut();
+            revealAuthSection();
             showAuthForm("reset");
             document.getElementById("reset-token").value = resetToken;
             clearAuthQueryParams();
         }
+    }
+
+    function isResetFlowActive() {
+        const resetForm = document.getElementById("reset-form");
+        return Boolean(resetForm && !resetForm.classList.contains("hidden"));
+    }
+
+    function revealAuthSection() {
+        document.getElementById("auth-section")?.classList.remove("hidden");
+        document.getElementById("app-content")?.classList.add("hidden");
+        document.getElementById("period-filter")?.classList.add("hidden");
+        document.getElementById("user-menu")?.classList.add("hidden");
+        document.getElementById("subscription-warning")?.classList.add("hidden");
     }
 
     function clearAuthQueryParams() {
@@ -108,6 +127,11 @@ const FinanceDashAuth = (() => {
 
         document.getElementById("login-tab")?.classList.toggle("button-secondary", formName !== "login");
         document.getElementById("register-tab")?.classList.toggle("button-secondary", formName !== "register");
+
+        const isReset = formName === "reset";
+        document.getElementById("auth-default-intro")?.classList.toggle("hidden", isReset);
+        document.getElementById("auth-reset-intro")?.classList.toggle("hidden", !isReset);
+        document.getElementById("auth-tabs")?.classList.toggle("hidden", isReset || formName === "forgot");
     }
 
     async function handleLogin(event) {
@@ -145,6 +169,12 @@ const FinanceDashAuth = (() => {
         const feedback = document.getElementById("reset-feedback");
         const formData = new FormData(event.currentTarget);
         const payload = Object.fromEntries(formData.entries());
+        const confirmPassword = document.getElementById("reset-password-confirm")?.value || "";
+
+        if (payload.password !== confirmPassword) {
+            FinanceDashUi.setFeedback(feedback, "As senhas não coincidem.", "error");
+            return;
+        }
 
         try {
             FinanceDashUi.setButtonLoading(button, true, "Salvando...");
@@ -232,11 +262,7 @@ const FinanceDashAuth = (() => {
 
     function showLoggedOut() {
         currentUser = null;
-        document.getElementById("auth-section")?.classList.remove("hidden");
-        document.getElementById("app-content")?.classList.add("hidden");
-        document.getElementById("period-filter")?.classList.add("hidden");
-        document.getElementById("user-menu")?.classList.add("hidden");
-        document.getElementById("subscription-warning")?.classList.add("hidden");
+        revealAuthSection();
         showAuthForm("login");
     }
 

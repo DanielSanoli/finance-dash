@@ -100,7 +100,7 @@ class AuthServiceTest {
         verify(userRepository).save(captor.capture());
         assertThat(captor.getValue().getPasswordHash()).isEqualTo("hash");
         verify(defaultCategoryService).seedForUser(any(AppUser.class));
-        verify(emailService).sendEmailVerification("daniel@example.com", "http://localhost:8080/?verify=verify-token");
+        verify(emailService).sendEmailVerification("daniel@example.com", "http://localhost:8080/app.html?verify=verify-token");
     }
 
     @Test
@@ -147,7 +147,7 @@ class AuthServiceTest {
         when(tokenService.createPasswordResetToken(user)).thenReturn("reset-token");
         doThrow(new BusinessException("Não foi possível enviar o e-mail. Tente novamente mais tarde."))
                 .when(emailService)
-                .sendPasswordResetEmail("daniel@example.com", "http://localhost:8080/?reset=reset-token");
+                .sendPasswordResetEmail("daniel@example.com", "http://localhost:8080/app.html?reset=reset-token");
 
         var response = authService.forgotPassword(new ForgotPasswordRequest("daniel@example.com"));
 

@@ -9,6 +9,16 @@ spring:
       ddl-auto: create-drop
     database-platform: org.hibernate.dialect.H2Dialect
     open-in-view: false
+  ai:
+    model:
+      chat: none
+      embedding: none
+      image: none
+      audio:
+        speech: none
+        transcription: none
+    openai:
+      api-key: test-disabled
 
 app:
   security:
@@ -19,3 +29,8 @@ app:
     enabled: false
   mail:
     enabled: false
+  radar:
+    ai:
+      enabled: false
+    digest:
+      enabled: false

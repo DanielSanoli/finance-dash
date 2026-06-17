@@ -1,8 +1,10 @@
 package com.sanoli.financedash.dto;
 
+import com.sanoli.financedash.domain.DigestFrequency;
 import com.sanoli.financedash.domain.UserSettings;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.UUID;
 
 public record UserSettingsResponse(
@@ -13,7 +15,9 @@ public record UserSettingsResponse(
         BigDecimal monthlyFixedCost,
         BigDecimal billableHoursPerMonth,
         BigDecimal taxRate,
-        BigDecimal desiredMargin
+        BigDecimal desiredMargin,
+        DigestFrequency digestFrequency,
+        Instant lastDigestSentAt
 ) {
     public static UserSettingsResponse fromEntity(UserSettings settings) {
         return new UserSettingsResponse(
@@ -24,7 +28,9 @@ public record UserSettingsResponse(
                 settings.getMonthlyFixedCost(),
                 settings.getBillableHoursPerMonth(),
                 settings.getTaxRate(),
-                settings.getDesiredMargin()
+                settings.getDesiredMargin(),
+                settings.getDigestFrequency(),
+                settings.getLastDigestSentAt()
         );
     }
 }

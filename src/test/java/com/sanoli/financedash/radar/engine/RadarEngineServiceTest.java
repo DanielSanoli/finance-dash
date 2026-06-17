@@ -175,6 +175,90 @@ class RadarEngineServiceTest {
         assertThat(result.totalBlocked()).isEqualByComparingTo("1500.00");
     }
 
+    @Test
+    void needsMoreFreelanceCalculatesGapAndExtraHours() {
+        RadarEngineService engine = engineAt(LocalDate.of(2026, 6, 17));
+        Transaction paidIncome = tx(TransactionType.INCOME, "2000.00", TransactionStatus.PAID, LocalDate.of(2026, 6, 5), false);
+        Transaction pending = tx(TransactionType.INCOME, "500.00", TransactionStatus.PENDING, LocalDate.of(2026, 6, 10), false);
+        pending.setDueDate(LocalDate.of(2026, 6, 25));
+        mockMonth(List.of(paidIncome));
+        mockUnpaidIncome(List.of(pending));
+        mockUnpaidExpense(List.of());
+        UserSettings settings = new UserSettings();
+        settings.setMonthlyIncomeGoal(new BigDecimal("5000.00"));
+        settings.setBillableHoursPerMonth(new BigDecimal("100"));
+        when(userSettingsService.getOrCreate(USER_ID)).thenReturn(settings);
+
+        FreelanceGapResult result = engine.needsMoreFreelance(USER_ID);
+
+        assertThat(result.needsMoreFreelance()).isTrue();
+        assertThat(result.expectedMonthIncome()).isEqualByComparingTo("2500.00");
+        assertThat(result.incomeGap()).isEqualByComparingTo("2500.00");
+        assertThat(result.referenceHourlyRate()).isEqualByComparingTo("50.00");
+        assertThat(result.extraBillableHours()).isEqualByComparingTo("50.00");
+    }
+
+    @Test
+    void needsMoreFreelanceIsFalseWhenGoalAlreadyMet() {
+        RadarEngineService engine = engineAt(LocalDate.of(2026, 6, 17));
+        Transaction paidIncome = tx(TransactionType.INCOME, "6000.00", TransactionStatus.PAID, LocalDate.of(2026, 6, 5), false);
+        mockMonth(List.of(paidIncome));
+        mockUnpaidIncome(List.of());
+        mockUnpaidExpense(List.of());
+        UserSettings settings = new UserSettings();
+        settings.setMonthlyIncomeGoal(new BigDecimal("5000.00"));
+        settings.setBillableHoursPerMonth(new BigDecimal("100"));
+        when(userSettingsService.getOrCreate(USER_ID)).thenReturn(settings);
+
+        FreelanceGapResult result = engine.needsMoreFreelance(USER_ID);
+
+        assertThat(result.needsMoreFreelance()).isFalse();
+        assertThat(result.incomeGap()).isEqualByComparingTo("0.00");
+    }
+
+    @Test
+    void minimumProjectPriceUsesFixedCostTaxAndMargin() {
+        RadarEngineService engine = engineAt(LocalDate.of(2026, 6, 17));
+        mockMonth(List.of());
+        mockUnpaidIncome(List.of());
+        mockUnpaidExpense(List.of());
+        UserSettings settings = new UserSettings();
+        settings.setMonthlyFixedCost(new BigDecimal("2000.00"));
+        settings.setMonthlyIncomeGoal(new BigDecimal("5000.00"));
+        settings.setBillableHoursPerMonth(new BigDecimal("100"));
+        settings.setTaxRate(new BigDecimal("0.1000"));
+        settings.setDesiredMargin(new BigDecimal("0.2000"));
+        when(userSettingsService.getOrCreate(USER_ID)).thenReturn(settings);
+
+        MinimumProjectPriceResult result = engine.minimumProjectPrice(USER_ID, new BigDecimal("10"));
+
+        assertThat(result.minimumProjectPrice()).isEqualByComparingTo("1000.00");
+        assertThat(result.minimumHourlyRate()).isEqualByComparingTo("100.00");
+        assertThat(result.baseHourlyRate()).isEqualByComparingTo("70.00");
+    }
+
+    @Test
+    void analyzeCutsListsOnlyNonEssentialVariableExpenses() {
+        RadarEngineService engine = engineAt(LocalDate.of(2026, 6, 17));
+        Transaction essential = tx(TransactionType.EXPENSE, "500.00", TransactionStatus.PAID, LocalDate.of(2026, 6, 8), false);
+        essential.setEssential(true);
+        Transaction cuttable = tx(TransactionType.EXPENSE, "200.00", TransactionStatus.PAID, LocalDate.of(2026, 6, 9), false);
+        cuttable.setEssential(false);
+        cuttable.setDescription("Assinatura streaming");
+        Transaction paidIncome = tx(TransactionType.INCOME, "1000.00", TransactionStatus.PAID, LocalDate.of(2026, 6, 5), false);
+        mockMonth(List.of(paidIncome, essential, cuttable));
+        mockUnpaidIncome(List.of());
+        mockUnpaidExpense(List.of());
+
+        CutAnalysisResult result = engine.analyzeCuts(USER_ID);
+
+        assertThat(result.items()).hasSize(1);
+        assertThat(result.items().getFirst().description()).isEqualTo("Assinatura streaming");
+        assertThat(result.totalCuttable()).isEqualByComparingTo("200.00");
+        assertThat(result.projectedBalanceAfterCuts())
+                .isEqualByComparingTo(result.currentProjectedBalance().add(new BigDecimal("200.00")));
+    }
+
     private Transaction tx(TransactionType type, String amount, TransactionStatus status, LocalDate date, boolean recurring) {
         Transaction transaction = new Transaction();
         transaction.setId(UUID.randomUUID());

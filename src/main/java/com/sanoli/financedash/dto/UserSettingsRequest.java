@@ -1,5 +1,6 @@
 package com.sanoli.financedash.dto;
 
+import com.sanoli.financedash.domain.DigestFrequency;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -25,6 +26,8 @@ public record UserSettingsRequest(
 
         @DecimalMin(value = "0.0", message = "desiredMargin deve estar entre 0 e 1")
         @DecimalMax(value = "1.0", inclusive = false, message = "desiredMargin deve estar entre 0 e 1")
-        BigDecimal desiredMargin
+        BigDecimal desiredMargin,
+
+        DigestFrequency digestFrequency
 ) {
 }

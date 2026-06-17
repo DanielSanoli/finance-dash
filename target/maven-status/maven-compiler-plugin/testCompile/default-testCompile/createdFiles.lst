@@ -6,7 +6,10 @@ com\sanoli\financedash\controller\TransactionControllerTest.class
 com\sanoli\financedash\controller\GoalControllerTest.class
 com\sanoli\financedash\service\DashboardServiceTest.class
 com\sanoli\financedash\service\BillingServiceTest.class
+com\sanoli\financedash\radar\digest\RadarDigestComposerTest.class
 com\sanoli\financedash\service\AuthServiceTest.class
+com\sanoli\financedash\radar\digest\RadarDigestServiceTest.class
 com\sanoli\financedash\service\TransactionServiceTest.class
+com\sanoli\financedash\radar\ai\RadarCopilotServiceTest.class
 com\sanoli\financedash\service\GoalServiceTest.class
 com\sanoli\financedash\service\CategoryServiceTest.class

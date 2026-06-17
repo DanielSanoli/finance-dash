@@ -15,6 +15,19 @@ spring:
         format_sql: true
   jackson:
     default-property-inclusion: non_null
+  ai:
+    model:
+      chat: ${SPRING_AI_CHAT_MODEL:none}
+      embedding: none
+      image: none
+      audio:
+        speech: none
+        transcription: none
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      chat:
+        options:
+          model: ${OPENAI_MODEL:gpt-4o-mini}
 
 server:
   port: ${SERVER_PORT:8080}
@@ -40,6 +53,14 @@ app:
   mail:
     enabled: ${MAIL_ENABLED:false}
     from: ${MAIL_FROM:noreply@financedash.com}
+  radar:
+    timezone: ${RADAR_TIMEZONE:America/Sao_Paulo}
+    alerts-cron: ${RADAR_ALERTS_CRON:0 0 8 * * *}
+    digest-cron: ${RADAR_DIGEST_CRON:0 0 9 * * MON}
+    digest:
+      enabled: ${RADAR_DIGEST_ENABLED:true}
+    ai:
+      enabled: ${RADAR_AI_ENABLED:false}
 
 springdoc:
   swagger-ui:

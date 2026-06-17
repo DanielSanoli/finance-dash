@@ -19,6 +19,16 @@ public class LoggingEmailService implements EmailService {
         log.info("Email verification requested for account ending with {}. Verification link: {}", maskEmail(email), verificationUrl);
     }
 
+    @Override
+    public void sendRadarDigest(String email, String subject, String body) {
+        log.info("Radar digest for account ending with {}. Subject: {}. Body: {}", maskEmail(email), subject, body);
+    }
+
+    @Override
+    public void sendCriticalAlert(String email, String subject, String body) {
+        log.info("Radar critical alert for account ending with {}. Subject: {}. Body: {}", maskEmail(email), subject, body);
+    }
+
     private String maskEmail(String email) {
         if (email == null || !email.contains("@")) {
             return "***";

@@ -4,6 +4,7 @@ import com.sanoli.financedash.domain.Transaction;
 import com.sanoli.financedash.domain.TransactionStatus;
 import com.sanoli.financedash.domain.TransactionType;
 import com.sanoli.financedash.domain.UserSettings;
+import com.sanoli.financedash.exception.BusinessException;
 import com.sanoli.financedash.repository.TransactionRepository;
 import com.sanoli.financedash.service.UserSettingsService;
 import org.springframework.stereotype.Service;
@@ -193,6 +194,174 @@ public class RadarEngineService {
         }
 
         return new OverdueReceivablesResult(money(totalBlocked), items, assumptions);
+    }
+
+    @Transactional(readOnly = true)
+    public FreelanceGapResult needsMoreFreelance(UUID userId) {
+        Context ctx = loadContext(userId);
+        List<String> assumptions = new ArrayList<>();
+
+        BigDecimal goal = money(nullToZero(ctx.settings.getMonthlyIncomeGoal()));
+        BigDecimal expectedMonthIncome = ctx.paidIncome;
+        for (Transaction receivable : ctx.expectedReceivables) {
+            expectedMonthIncome = expectedMonthIncome.add(receivable.getAmount());
+        }
+        expectedMonthIncome = money(expectedMonthIncome);
+
+        BigDecimal incomeGap = goal.subtract(expectedMonthIncome);
+        if (incomeGap.signum() < 0) {
+            incomeGap = BigDecimal.ZERO;
+        } else {
+            incomeGap = money(incomeGap);
+        }
+
+        BigDecimal billableHours = nullToZero(ctx.settings.getBillableHoursPerMonth());
+        BigDecimal referenceHourlyRate = BigDecimal.ZERO;
+        BigDecimal extraBillableHours = BigDecimal.ZERO;
+
+        assumptions.add(String.format(
+                "Receita prevista no mês: R$ %s (recebido + pendente até %s)",
+                expectedMonthIncome.toPlainString(),
+                ctx.lastDay.format(DATE_FORMAT)
+        ));
+        assumptions.add(String.format("Meta de receita mensal: R$ %s", goal.toPlainString()));
+
+        if (billableHours.signum() > 0) {
+            referenceHourlyRate = money(goal.divide(billableHours, 10, RoundingMode.HALF_EVEN));
+            assumptions.add(String.format(
+                    "Taxa horária de referência = meta / %s h faturáveis = R$ %s/h",
+                    billableHours.toPlainString(),
+                    referenceHourlyRate.toPlainString()
+            ));
+            if (incomeGap.signum() > 0) {
+                extraBillableHours = incomeGap.divide(referenceHourlyRate, MONEY_SCALE, RoundingMode.HALF_EVEN);
+                assumptions.add(String.format(
+                        "Horas extras estimadas = gap / taxa horária = %s h",
+                        extraBillableHours.toPlainString()
+                ));
+            } else {
+                assumptions.add("Meta de receita já atingida ou superada na projeção atual");
+            }
+        } else {
+            assumptions.add("billableHoursPerMonth não configurado: horas extras não calculadas");
+        }
+
+        return new FreelanceGapResult(
+                goal,
+                expectedMonthIncome,
+                incomeGap,
+                referenceHourlyRate,
+                extraBillableHours,
+                incomeGap.signum() > 0,
+                assumptions
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public MinimumProjectPriceResult minimumProjectPrice(UUID userId, BigDecimal estimatedHours) {
+        if (estimatedHours == null || estimatedHours.signum() <= 0) {
+            throw new BusinessException("estimatedHours deve ser maior que zero");
+        }
+
+        UserSettings settings = userSettingsService.getOrCreate(userId);
+        List<String> assumptions = new ArrayList<>();
+
+        BigDecimal billableHours = nullToZero(settings.getBillableHoursPerMonth());
+        if (billableHours.signum() <= 0) {
+            throw new BusinessException("Configure billableHoursPerMonth em user-settings para precificar projetos");
+        }
+
+        BigDecimal taxRate = nullToZero(settings.getTaxRate());
+        BigDecimal desiredMargin = nullToZero(settings.getDesiredMargin());
+        BigDecimal denominator = BigDecimal.ONE.subtract(taxRate).subtract(desiredMargin);
+        if (denominator.signum() <= 0) {
+            throw new BusinessException("taxRate + desiredMargin deve ser menor que 1");
+        }
+
+        BigDecimal costPerHour = money(nullToZero(settings.getMonthlyFixedCost())
+                .divide(billableHours, 10, RoundingMode.HALF_EVEN));
+        BigDecimal targetIncomePerHour = money(nullToZero(settings.getMonthlyIncomeGoal())
+                .divide(billableHours, 10, RoundingMode.HALF_EVEN));
+        BigDecimal baseHourlyRate = money(costPerHour.add(targetIncomePerHour));
+        BigDecimal minimumHourlyRate = money(baseHourlyRate.divide(denominator, 10, RoundingMode.HALF_EVEN));
+        BigDecimal minimumProjectPrice = money(minimumHourlyRate.multiply(estimatedHours));
+
+        assumptions.add(String.format("Custo fixo alocado: R$ %s/h", costPerHour.toPlainString()));
+        assumptions.add(String.format("Meta de receita alocada: R$ %s/h", targetIncomePerHour.toPlainString()));
+        assumptions.add(String.format(
+                "Markup por imposto (%s) e margem (%s)",
+                taxRate.toPlainString(),
+                desiredMargin.toPlainString()
+        ));
+        assumptions.add(String.format(
+                "Preço mínimo = %s h × R$ %s/h",
+                estimatedHours.toPlainString(),
+                minimumHourlyRate.toPlainString()
+        ));
+
+        return new MinimumProjectPriceResult(
+                estimatedHours.setScale(MONEY_SCALE, RoundingMode.HALF_EVEN),
+                minimumProjectPrice,
+                minimumHourlyRate,
+                baseHourlyRate,
+                taxRate,
+                desiredMargin,
+                assumptions
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public CutAnalysisResult analyzeCuts(UUID userId) {
+        Context ctx = loadContext(userId);
+        MonthProjectionResult projection = projectMonthBalance(userId);
+        List<String> assumptions = new ArrayList<>();
+
+        List<Transaction> monthTransactions = transactionRepository
+                .findByUserIdAndTransactionDateBetween(userId, YearMonth.from(ctx.today).atDay(1), ctx.lastDay);
+
+        List<CutAnalysisItem> items = new ArrayList<>();
+        BigDecimal totalCuttable = BigDecimal.ZERO;
+
+        for (Transaction transaction : monthTransactions) {
+            if (transaction.getType() != TransactionType.EXPENSE || transaction.isRecurring()) {
+                continue;
+            }
+            if (!Boolean.FALSE.equals(transaction.getEssential())) {
+                continue;
+            }
+
+            totalCuttable = totalCuttable.add(transaction.getAmount());
+            items.add(new CutAnalysisItem(
+                    transaction.getId(),
+                    transaction.getDescription(),
+                    transaction.getCategory() != null ? transaction.getCategory().getName() : "Sem categoria",
+                    money(transaction.getAmount()),
+                    transaction.getStatus()
+            ));
+        }
+
+        items.sort(Comparator.comparing(CutAnalysisItem::amount).reversed());
+        totalCuttable = money(totalCuttable);
+        BigDecimal projectedAfterCuts = money(projection.projectedBalance().add(totalCuttable));
+
+        if (items.isEmpty()) {
+            assumptions.add("Nenhuma despesa variável marcada como não essencial (essential=false) no mês");
+        } else {
+            assumptions.add(String.format(
+                    "%d despesa(s) variável(is) não essencial(is) no mês, totalizando R$ %s",
+                    items.size(),
+                    totalCuttable.toPlainString()
+            ));
+            assumptions.add("What-if: se evitadas, o saldo projetado subiria em R$ " + totalCuttable.toPlainString());
+        }
+
+        return new CutAnalysisResult(
+                totalCuttable,
+                projection.projectedBalance(),
+                projectedAfterCuts,
+                items,
+                assumptions
+        );
     }
 
     private Context loadContext(UUID userId) {

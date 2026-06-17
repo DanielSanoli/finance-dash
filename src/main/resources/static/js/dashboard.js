@@ -160,14 +160,12 @@ const FinanceDashDashboard = (() => {
         expandedChart = renderCategoryChart("expanded-chart", expandedChart, config.items, config.label, false);
 
         const modal = document.getElementById("chart-modal");
-        modal.classList.add("show");
-        modal.setAttribute("aria-hidden", "false");
+        FinanceDashUi.showModal(modal, "#chart-modal-close");
     }
 
     function closeExpandedChart() {
         const modal = document.getElementById("chart-modal");
-        modal?.classList.remove("show");
-        modal?.setAttribute("aria-hidden", "true");
+        FinanceDashUi.hideModal(modal);
     }
 
     function bindEvents() {

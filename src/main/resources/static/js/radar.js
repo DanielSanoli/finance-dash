@@ -15,6 +15,9 @@ const FinanceDashRadar = (() => {
     function bindEvents(refreshHandler) {
         document.getElementById("radar-min-price-calc")?.addEventListener("click", calculateMinimumPrice);
         document.getElementById("radar-ask-send")?.addEventListener("click", sendQuestion);
+        document.getElementById("radar-setup-button")?.addEventListener("click", () => {
+            FinanceDashApp.openFinancialProfile();
+        });
         document.getElementById("radar-ask-input")?.addEventListener("keydown", (event) => {
             if (event.key === "Enter") {
                 event.preventDefault();
@@ -60,6 +63,14 @@ const FinanceDashRadar = (() => {
         setSectionLoading(true);
 
         try {
+            const settings = await FinanceDashSettings.load();
+            if (!FinanceDashSettings.isConfigured(settings)) {
+                showSetupState();
+                return;
+            }
+
+            hideSetupState();
+
             const [
                 projection,
                 safeToSpend,
@@ -86,6 +97,16 @@ const FinanceDashRadar = (() => {
             loading = false;
             setSectionLoading(false);
         }
+    }
+
+    function showSetupState() {
+        document.getElementById("radar-setup-banner")?.classList.remove("hidden");
+        document.getElementById("radar-data-sections")?.classList.add("hidden");
+    }
+
+    function hideSetupState() {
+        document.getElementById("radar-setup-banner")?.classList.add("hidden");
+        document.getElementById("radar-data-sections")?.classList.remove("hidden");
     }
 
     function setSectionLoading(isLoading) {

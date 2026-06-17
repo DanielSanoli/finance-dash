@@ -49,6 +49,15 @@ public class AppUser {
 
     private LocalDateTime subscriptionEndsAt;
 
+    @Column(length = 64)
+    private String asaasCustomerId;
+
+    @Column(length = 64)
+    private String asaasSubscriptionId;
+
+    @Column(nullable = false)
+    private boolean emailVerified = false;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -140,6 +149,30 @@ public class AppUser {
 
     public void setSubscriptionEndsAt(LocalDateTime subscriptionEndsAt) {
         this.subscriptionEndsAt = subscriptionEndsAt;
+    }
+
+    public String getAsaasCustomerId() {
+        return asaasCustomerId;
+    }
+
+    public void setAsaasCustomerId(String asaasCustomerId) {
+        this.asaasCustomerId = asaasCustomerId;
+    }
+
+    public String getAsaasSubscriptionId() {
+        return asaasSubscriptionId;
+    }
+
+    public void setAsaasSubscriptionId(String asaasSubscriptionId) {
+        this.asaasSubscriptionId = asaasSubscriptionId;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
     }
 
     public LocalDateTime getCreatedAt() {

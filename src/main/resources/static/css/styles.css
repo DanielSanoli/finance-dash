@@ -181,6 +181,66 @@ button.danger {
     color: #fecaca;
 }
 
+.account-actions {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.link-button {
+    background: transparent;
+    border: 0;
+    color: #93c5fd;
+    cursor: pointer;
+    font: inherit;
+    justify-self: start;
+    padding: 0;
+    text-decoration: underline;
+}
+
+.app-footer {
+    color: var(--muted);
+    padding: 0 clamp(1rem, 3vw, 3rem) 2rem;
+    text-align: center;
+}
+
+.app-footer a {
+    color: #93c5fd;
+}
+
+.legal-page {
+    display: grid;
+    min-height: 100vh;
+    padding: clamp(1rem, 3vw, 3rem);
+    place-items: start center;
+}
+
+.legal-card {
+    max-width: 760px;
+    width: min(100%, 760px);
+}
+
+.legal-card section {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.legal-card h2 {
+    font-size: 1.1rem;
+}
+
+.legal-card ul {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+.feedback.success {
+    color: #86efac;
+}
+
 .eyebrow {
     color: var(--accent);
     font-size: 0.85rem;

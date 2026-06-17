@@ -1,5 +1,6 @@
 const FinanceDashAuth = (() => {
     let onAuthenticated = async () => {};
+    let currentUser = null;
 
     async function init(callback) {
         onAuthenticated = callback;
@@ -8,6 +9,9 @@ const FinanceDashAuth = (() => {
             showLoggedOut();
             FinanceDashUi.showToast("Sessão expirada. Faça login novamente.");
         });
+        window.addEventListener("financedash:subscription-required", refreshAccountStatus);
+
+        await handleAuthQueryParams();
 
         if (!FinanceDashApi.getToken()) {
             showLoggedOut();
@@ -18,7 +22,7 @@ const FinanceDashAuth = (() => {
             const user = await FinanceDashApi.me();
             await showLoggedIn(user);
         } catch (error) {
-            FinanceDashApi.clearToken();
+            FinanceDashApi.clearSession();
             showLoggedOut();
         }
     }
@@ -26,20 +30,65 @@ const FinanceDashAuth = (() => {
     function bindEvents() {
         document.getElementById("login-tab")?.addEventListener("click", () => showAuthForm("login"));
         document.getElementById("register-tab")?.addEventListener("click", () => showAuthForm("register"));
+        document.getElementById("forgot-tab")?.addEventListener("click", () => showAuthForm("forgot"));
+        document.getElementById("forgot-back")?.addEventListener("click", () => showAuthForm("login"));
         document.getElementById("login-form")?.addEventListener("submit", handleLogin);
         document.getElementById("register-form")?.addEventListener("submit", handleRegister);
+        document.getElementById("forgot-form")?.addEventListener("submit", handleForgotPassword);
+        document.getElementById("reset-form")?.addEventListener("submit", handleResetPassword);
         document.getElementById("account-button")?.addEventListener("click", () => {
             document.getElementById("account-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
         });
         document.getElementById("logout-button")?.addEventListener("click", logout);
+        document.getElementById("checkout-pro-button")?.addEventListener("click", handleCheckoutPro);
+    }
+
+    async function handleAuthQueryParams() {
+        const params = new URLSearchParams(window.location.search);
+        const verifyToken = params.get("verify");
+        const resetToken = params.get("reset");
+
+        if (verifyToken) {
+            try {
+                const response = await FinanceDashApi.verifyEmail(verifyToken);
+                FinanceDashUi.showToast(response.message || "Email verificado.");
+            } catch (error) {
+                FinanceDashUi.showToast(error.message);
+            } finally {
+                clearAuthQueryParams();
+            }
+            return;
+        }
+
+        if (resetToken) {
+            showLoggedOut();
+            showAuthForm("reset");
+            document.getElementById("reset-token").value = resetToken;
+            clearAuthQueryParams();
+        }
+    }
+
+    function clearAuthQueryParams() {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("verify");
+        url.searchParams.delete("reset");
+        window.history.replaceState({}, "", url.pathname + url.search + url.hash);
     }
 
     function showAuthForm(formName) {
-        const isLogin = formName === "login";
-        document.getElementById("login-form")?.classList.toggle("hidden", !isLogin);
-        document.getElementById("register-form")?.classList.toggle("hidden", isLogin);
-        document.getElementById("login-tab")?.classList.toggle("button-secondary", !isLogin);
-        document.getElementById("register-tab")?.classList.toggle("button-secondary", isLogin);
+        const forms = {
+            login: document.getElementById("login-form"),
+            register: document.getElementById("register-form"),
+            forgot: document.getElementById("forgot-form"),
+            reset: document.getElementById("reset-form")
+        };
+
+        Object.entries(forms).forEach(([name, element]) => {
+            element?.classList.toggle("hidden", name !== formName);
+        });
+
+        document.getElementById("login-tab")?.classList.toggle("button-secondary", formName !== "login");
+        document.getElementById("register-tab")?.classList.toggle("button-secondary", formName !== "register");
     }
 
     async function handleLogin(event) {
@@ -52,6 +101,46 @@ const FinanceDashAuth = (() => {
         await submitAuthForm(event.currentTarget, "register-submit", "register-feedback", FinanceDashApi.register);
     }
 
+    async function handleForgotPassword(event) {
+        event.preventDefault();
+        const button = document.getElementById("forgot-submit");
+        const feedback = document.getElementById("forgot-feedback");
+        const formData = new FormData(event.currentTarget);
+        const payload = Object.fromEntries(formData.entries());
+
+        try {
+            FinanceDashUi.setButtonLoading(button, true, "Enviando...");
+            FinanceDashUi.setFeedback(feedback, "");
+            const response = await FinanceDashApi.forgotPassword(payload);
+            FinanceDashUi.setFeedback(feedback, response.message, "success");
+        } catch (error) {
+            FinanceDashUi.setFeedback(feedback, error.message, "error");
+        } finally {
+            FinanceDashUi.setButtonLoading(button, false);
+        }
+    }
+
+    async function handleResetPassword(event) {
+        event.preventDefault();
+        const button = document.getElementById("reset-submit");
+        const feedback = document.getElementById("reset-feedback");
+        const formData = new FormData(event.currentTarget);
+        const payload = Object.fromEntries(formData.entries());
+
+        try {
+            FinanceDashUi.setButtonLoading(button, true, "Salvando...");
+            FinanceDashUi.setFeedback(feedback, "");
+            const response = await FinanceDashApi.resetPassword(payload);
+            FinanceDashUi.setFeedback(feedback, response.message, "success");
+            FinanceDashUi.showToast("Senha atualizada. Faça login.");
+            showAuthForm("login");
+        } catch (error) {
+            FinanceDashUi.setFeedback(feedback, error.message, "error");
+        } finally {
+            FinanceDashUi.setButtonLoading(button, false);
+        }
+    }
+
     async function submitAuthForm(form, buttonId, feedbackId, action) {
         const button = document.getElementById(buttonId);
         const feedback = document.getElementById(feedbackId);
@@ -62,7 +151,7 @@ const FinanceDashAuth = (() => {
             FinanceDashUi.setButtonLoading(button, true, "Aguarde...");
             FinanceDashUi.setFeedback(feedback, "");
             const response = await action(payload);
-            FinanceDashApi.setToken(response.token);
+            FinanceDashApi.storeAuthResponse(response);
             await showLoggedIn(response.user);
             FinanceDashUi.showToast("Acesso liberado.");
         } catch (error) {
@@ -72,7 +161,45 @@ const FinanceDashAuth = (() => {
         }
     }
 
+    async function handleCheckoutPro() {
+        const button = document.getElementById("checkout-pro-button");
+        const feedback = document.getElementById("checkout-feedback");
+
+        try {
+            FinanceDashUi.setButtonLoading(button, true, "Gerando checkout...");
+            FinanceDashUi.setFeedback(feedback, "");
+            const response = await FinanceDashApi.checkoutPro();
+
+            if (response.checkoutUrl) {
+                window.open(response.checkoutUrl, "_blank", "noopener,noreferrer");
+            }
+
+            FinanceDashUi.setFeedback(feedback, response.message, response.checkoutUrl ? "success" : "");
+            FinanceDashUi.showToast(response.message);
+            await refreshAccountStatus();
+        } catch (error) {
+            FinanceDashUi.setFeedback(feedback, error.message, "error");
+        } finally {
+            FinanceDashUi.setButtonLoading(button, false);
+        }
+    }
+
+    async function refreshAccountStatus() {
+        if (!FinanceDashApi.getToken()) {
+            return;
+        }
+
+        try {
+            const user = await FinanceDashApi.me();
+            currentUser = user;
+            renderAccount(user);
+        } catch (error) {
+            // Mantém o usuário logado para visualizar status da conta.
+        }
+    }
+
     async function showLoggedIn(user) {
+        currentUser = user;
         document.getElementById("auth-section")?.classList.add("hidden");
         document.getElementById("app-content")?.classList.remove("hidden");
         document.getElementById("period-filter")?.classList.remove("hidden");
@@ -85,6 +212,7 @@ const FinanceDashAuth = (() => {
     }
 
     function showLoggedOut() {
+        currentUser = null;
         document.getElementById("auth-section")?.classList.remove("hidden");
         document.getElementById("app-content")?.classList.add("hidden");
         document.getElementById("period-filter")?.classList.add("hidden");
@@ -101,12 +229,22 @@ const FinanceDashAuth = (() => {
         setText("account-trial-days", `${user.trialDaysRemaining || 0} dias`);
         setText("account-trial-ends", user.trialEndsAt ? `Termina em ${formatDateTime(user.trialEndsAt)}` : "Sem trial ativo");
         setText("account-subscription-status", statusLabel(user.subscriptionStatus));
-        setText("account-subscription-ends", user.subscriptionEndsAt ? `Termina em ${formatDateTime(user.subscriptionEndsAt)}` : "Gateway ainda não integrado");
+        setText("account-subscription-ends", user.subscriptionEndsAt
+            ? `Termina em ${formatDateTime(user.subscriptionEndsAt)}`
+            : "Aguardando confirmação de pagamento");
+        setText("account-email-verified", user.emailVerified ? "Verificado" : "Pendente de verificação");
 
         const badge = document.getElementById("account-access-badge");
         if (badge) {
             badge.textContent = user.accessMessage || "Acesso ativo";
             badge.classList.toggle("blocked", !user.accessAllowed);
+        }
+
+        const checkoutButton = document.getElementById("checkout-pro-button");
+        if (checkoutButton) {
+            const proActive = user.plan === "PRO" && user.subscriptionStatus === "ACTIVE";
+            checkoutButton.disabled = proActive;
+            checkoutButton.textContent = proActive ? "Plano Pro ativo" : "Assinar Pro";
         }
 
         const warning = document.getElementById("subscription-warning");
@@ -148,7 +286,7 @@ const FinanceDashAuth = (() => {
     }
 
     function logout() {
-        FinanceDashApi.clearToken();
+        FinanceDashApi.clearSession();
         showLoggedOut();
         FinanceDashUi.showToast("Você saiu da sua conta.");
     }

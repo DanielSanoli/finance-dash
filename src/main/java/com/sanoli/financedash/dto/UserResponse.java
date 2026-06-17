@@ -17,6 +17,7 @@ public record UserResponse(
         SubscriptionStatus subscriptionStatus,
         LocalDateTime trialEndsAt,
         LocalDateTime subscriptionEndsAt,
+        boolean emailVerified,
         boolean accessAllowed,
         String accessMessage,
         long trialDaysRemaining
@@ -31,6 +32,7 @@ public record UserResponse(
                 user.getSubscriptionStatus(),
                 user.getTrialEndsAt(),
                 user.getSubscriptionEndsAt(),
+                user.isEmailVerified(),
                 user.hasActiveAccess(),
                 user.getAccessMessage(),
                 user.getTrialDaysRemaining()

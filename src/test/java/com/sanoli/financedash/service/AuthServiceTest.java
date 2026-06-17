@@ -5,12 +5,14 @@ import com.sanoli.financedash.dto.AuthResponse;
 import com.sanoli.financedash.dto.LoginRequest;
 import com.sanoli.financedash.dto.RegisterRequest;
 import com.sanoli.financedash.exception.BusinessException;
+import com.sanoli.financedash.repository.RefreshTokenRepository;
+import com.sanoli.financedash.repository.UserActionTokenRepository;
 import com.sanoli.financedash.repository.UserRepository;
 import com.sanoli.financedash.security.JwtService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,6 +33,12 @@ class AuthServiceTest {
     private UserRepository userRepository;
 
     @Mock
+    private RefreshTokenRepository refreshTokenRepository;
+
+    @Mock
+    private UserActionTokenRepository userActionTokenRepository;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock
@@ -39,8 +47,32 @@ class AuthServiceTest {
     @Mock
     private DefaultCategoryService defaultCategoryService;
 
-    @InjectMocks
+    @Mock
+    private TokenService tokenService;
+
+    @Mock
+    private EmailService emailService;
+
+    @Mock
+    private LoginRateLimiter loginRateLimiter;
+
     private AuthService authService;
+
+    @BeforeEach
+    void setUp() {
+        authService = new AuthService(
+                userRepository,
+                refreshTokenRepository,
+                userActionTokenRepository,
+                passwordEncoder,
+                jwtService,
+                defaultCategoryService,
+                tokenService,
+                emailService,
+                loginRateLimiter,
+                "http://localhost:8080"
+        );
+    }
 
     @Test
     void shouldRegisterUserAndSeedDefaultCategories() {
@@ -52,17 +84,21 @@ class AuthServiceTest {
             user.setId(UUID.randomUUID());
             return user;
         });
+        when(tokenService.createEmailVerificationToken(any(AppUser.class))).thenReturn("verify-token");
+        when(tokenService.createRefreshToken(any(AppUser.class))).thenReturn("refresh-token");
         when(jwtService.generateToken(any(AppUser.class))).thenReturn("jwt-token");
 
         AuthResponse response = authService.register(request);
 
         assertThat(response.token()).isEqualTo("jwt-token");
+        assertThat(response.refreshToken()).isEqualTo("refresh-token");
         assertThat(response.user().email()).isEqualTo("daniel@example.com");
 
         ArgumentCaptor<AppUser> captor = ArgumentCaptor.forClass(AppUser.class);
         verify(userRepository).save(captor.capture());
         assertThat(captor.getValue().getPasswordHash()).isEqualTo("hash");
         verify(defaultCategoryService).seedForUser(any(AppUser.class));
+        verify(emailService).sendEmailVerification("daniel@example.com", "http://localhost:8080/?verify=verify-token");
     }
 
     @Test
@@ -80,12 +116,15 @@ class AuthServiceTest {
         AppUser user = user();
         when(userRepository.findByEmailIgnoreCase("daniel@example.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("password123", user.getPasswordHash())).thenReturn(true);
+        when(tokenService.createRefreshToken(user)).thenReturn("refresh-token");
         when(jwtService.generateToken(user)).thenReturn("jwt-token");
 
         AuthResponse response = authService.login(new LoginRequest("daniel@example.com", "password123"));
 
         assertThat(response.token()).isEqualTo("jwt-token");
+        assertThat(response.refreshToken()).isEqualTo("refresh-token");
         assertThat(response.user().id()).isEqualTo(user.getId());
+        verify(loginRateLimiter).reset("daniel@example.com");
     }
 
     @Test

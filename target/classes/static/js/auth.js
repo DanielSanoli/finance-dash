@@ -27,6 +27,22 @@ const FinanceDashAuth = (() => {
         }
     }
 
+    function toggleAccountPanel(open) {
+        const panel = document.getElementById("account-panel");
+        if (!panel) {
+            return;
+        }
+
+        if (open === undefined) {
+            open = panel.classList.contains("hidden");
+        }
+
+        panel.classList.toggle("hidden", !open);
+        if (open) {
+            panel.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }
+
     function bindEvents() {
         document.getElementById("login-tab")?.addEventListener("click", () => showAuthForm("login"));
         document.getElementById("register-tab")?.addEventListener("click", () => showAuthForm("register"));
@@ -37,7 +53,10 @@ const FinanceDashAuth = (() => {
         document.getElementById("forgot-form")?.addEventListener("submit", handleForgotPassword);
         document.getElementById("reset-form")?.addEventListener("submit", handleResetPassword);
         document.getElementById("account-button")?.addEventListener("click", () => {
-            document.getElementById("account-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            toggleAccountPanel(true);
+        });
+        document.getElementById("account-close-button")?.addEventListener("click", () => {
+            toggleAccountPanel(false);
         });
         document.getElementById("logout-button")?.addEventListener("click", logout);
         document.getElementById("checkout-pro-button")?.addEventListener("click", handleCheckoutPro);

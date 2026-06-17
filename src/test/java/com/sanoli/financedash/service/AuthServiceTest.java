@@ -2,6 +2,7 @@ package com.sanoli.financedash.service;
 
 import com.sanoli.financedash.domain.AppUser;
 import com.sanoli.financedash.dto.AuthResponse;
+import com.sanoli.financedash.dto.ForgotPasswordRequest;
 import com.sanoli.financedash.dto.LoginRequest;
 import com.sanoli.financedash.dto.RegisterRequest;
 import com.sanoli.financedash.exception.BusinessException;
@@ -23,6 +24,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -98,7 +100,7 @@ class AuthServiceTest {
         verify(userRepository).save(captor.capture());
         assertThat(captor.getValue().getPasswordHash()).isEqualTo("hash");
         verify(defaultCategoryService).seedForUser(any(AppUser.class));
-        verify(emailService).sendEmailVerification("daniel@example.com", "http://localhost:8080/?verify=verify-token");
+        verify(emailService).sendEmailVerification("daniel@example.com", "http://localhost:8080/app.html?verify=verify-token");
     }
 
     @Test
@@ -136,6 +138,30 @@ class AuthServiceTest {
         assertThatThrownBy(() -> authService.login(new LoginRequest("daniel@example.com", "wrong")))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("Email ou senha inválidos");
+    }
+
+    @Test
+    void shouldReturnGenericMessageWhenPasswordResetEmailFails() {
+        AppUser user = user();
+        when(userRepository.findByEmailIgnoreCase("daniel@example.com")).thenReturn(Optional.of(user));
+        when(tokenService.createPasswordResetToken(user)).thenReturn("reset-token");
+        doThrow(new BusinessException("Não foi possível enviar o e-mail. Tente novamente mais tarde."))
+                .when(emailService)
+                .sendPasswordResetEmail("daniel@example.com", "http://localhost:8080/app.html?reset=reset-token");
+
+        var response = authService.forgotPassword(new ForgotPasswordRequest("daniel@example.com"));
+
+        assertThat(response.message()).contains("Se o email existir");
+        verify(tokenService).createPasswordResetToken(user);
+    }
+
+    @Test
+    void shouldReturnGenericMessageWhenEmailDoesNotExist() {
+        when(userRepository.findByEmailIgnoreCase("missing@example.com")).thenReturn(Optional.empty());
+
+        var response = authService.forgotPassword(new ForgotPasswordRequest("missing@example.com"));
+
+        assertThat(response.message()).contains("Se o email existir");
     }
 
     private AppUser user() {

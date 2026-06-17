@@ -18,6 +18,8 @@ import com.sanoli.financedash.repository.RefreshTokenRepository;
 import com.sanoli.financedash.repository.UserActionTokenRepository;
 import com.sanoli.financedash.repository.UserRepository;
 import com.sanoli.financedash.security.JwtService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -76,7 +80,7 @@ public class AuthService {
         defaultCategoryService.seedForUser(savedUser);
 
         String verificationToken = tokenService.createEmailVerificationToken(savedUser);
-        emailService.sendEmailVerification(email, publicBaseUrl + "/?verify=" + verificationToken);
+        emailService.sendEmailVerification(email, publicBaseUrl + "/app.html?verify=" + verificationToken);
 
         return toAuthResponse(savedUser);
     }
@@ -120,7 +124,15 @@ public class AuthService {
     public MessageResponse forgotPassword(ForgotPasswordRequest request) {
         userRepository.findByEmailIgnoreCase(normalizeEmail(request.email())).ifPresent(user -> {
             String token = tokenService.createPasswordResetToken(user);
-            emailService.sendPasswordResetEmail(user.getEmail(), publicBaseUrl + "/?reset=" + token);
+            try {
+                emailService.sendPasswordResetEmail(user.getEmail(), publicBaseUrl + "/app.html?reset=" + token);
+            } catch (RuntimeException exception) {
+                log.error(
+                        "Falha ao enviar e-mail de recuperacao para conta terminando em {}",
+                        maskEmail(user.getEmail()),
+                        exception
+                );
+            }
         });
         return new MessageResponse("Se o email existir, enviaremos instruções de recuperação.");
     }
@@ -168,5 +180,12 @@ public class AuthService {
 
     private String normalizeEmail(String email) {
         return email.trim().toLowerCase();
+    }
+
+    private String maskEmail(String email) {
+        if (email == null || !email.contains("@")) {
+            return "***";
+        }
+        return "*" + email.substring(email.indexOf('@'));
     }
 }

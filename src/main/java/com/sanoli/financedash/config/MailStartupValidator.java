@@ -6,9 +6,14 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 public class MailStartupValidator implements ApplicationRunner {
+
+    private static final Pattern ANGLE_BRACKET_ADDRESS = Pattern.compile("<([^<>]+)>");
+    private static final Pattern EMAIL_ADDRESS = Pattern.compile("^[^\\s@<>]+@[^\\s@<>]+\\.[^\\s@<>]+$");
 
     private final MailProperties mailProperties;
 
@@ -55,6 +60,41 @@ public class MailStartupValidator implements ApplicationRunner {
                             + String.join(", ", missing)
             );
         }
+
+        validateFromAddress();
+    }
+
+    private void validateFromAddress() {
+        String from = mailProperties.getFrom();
+        if (isBlank(from)) {
+            return;
+        }
+
+        String emailAddress = extractEmailAddress(from.trim());
+        if (!EMAIL_ADDRESS.matcher(emailAddress).matches()) {
+            throw new IllegalStateException(
+                    "MAIL_FROM invalido: \"" + from + "\". "
+                            + "Use um e-mail completo, ex.: onboarding@resend.dev "
+                            + "ou FinanceDash <onboarding@resend.dev>. "
+                            + "No Railway, evite < > na variavel; prefira apenas o e-mail."
+            );
+        }
+
+        if (usesResend() && (emailAddress.endsWith(".railway.app") || emailAddress.contains("up.railway.app"))) {
+            throw new IllegalStateException(
+                    "MAIL_FROM nao pode usar dominio railway.app no Resend. "
+                            + "Para testes use onboarding@resend.dev; "
+                            + "para producao verifique seu proprio dominio em https://resend.com/domains."
+            );
+        }
+    }
+
+    static String extractEmailAddress(String from) {
+        Matcher matcher = ANGLE_BRACKET_ADDRESS.matcher(from);
+        if (matcher.find()) {
+            return matcher.group(1).trim();
+        }
+        return from.trim();
     }
 
     private boolean usesResend() {

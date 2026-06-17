@@ -63,7 +63,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception exception, HttpServletRequest request) {
         if (isSensitiveAuthPath(request.getRequestURI())) {
-            log.error("Unexpected error on auth endpoint {}", request.getRequestURI());
+            log.error(
+                    "Unexpected error on auth endpoint {}: {} - {}",
+                    request.getRequestURI(),
+                    exception.getClass().getSimpleName(),
+                    exception.getMessage(),
+                    exception
+            );
         } else {
             log.error("Unexpected error on {}", request.getRequestURI(), exception);
         }

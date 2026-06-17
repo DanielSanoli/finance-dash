@@ -5,14 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FinanceDash</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="stylesheet" href="css/styles.css?v=20260616-3">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css?v=20260617-6">
 </head>
 <body>
     <header class="app-header">
         <div>
-            <p class="eyebrow">FinanceDash MVP</p>
-            <h1>Dashboard financeiro</h1>
-            <p class="subtitle">Controle receitas, despesas, categorias e metas em uma visão mensal.</p>
+            <p class="eyebrow">FinanceDash</p>
+            <h1 id="app-page-title">Dashboard financeiro</h1>
+            <p id="app-page-subtitle" class="subtitle">Controle receitas, despesas, categorias e metas em uma visão mensal.</p>
         </div>
         <div class="header-actions">
             <div class="period-filter hidden" id="period-filter" aria-label="Filtro de período">
@@ -21,6 +24,10 @@
                 <label for="year">Ano</label>
                 <input id="year" type="number" min="1900" max="2999">
                 <button id="reload-dashboard" type="button">Atualizar</button>
+            </div>
+            <div class="period-filter radar-period hidden" id="radar-period" aria-label="Período do Radar">
+                <span id="radar-period-label">Mês corrente</span>
+                <button id="reload-radar" class="button-secondary" type="button">Atualizar</button>
             </div>
             <div id="user-menu" class="user-menu hidden">
                 <span id="user-menu-name"></span>
@@ -95,13 +102,21 @@
             <span id="subscription-warning-message">Atualize seu plano para voltar a usar o dashboard.</span>
         </section>
 
-        <section id="account-panel" class="panel account-panel">
+        <nav class="app-tabs" aria-label="Navegação principal">
+            <button class="tab active" type="button" data-app-view="dashboard">Dashboard</button>
+            <button class="tab" type="button" data-app-view="radar">Radar</button>
+        </nav>
+
+        <section id="account-panel" class="panel account-panel hidden">
             <div class="panel-header">
                 <div>
                     <h2>Conta e billing</h2>
                     <span>Trial, assinatura Pro e status de acesso</span>
                 </div>
-                <span id="account-access-badge" class="account-badge">Acesso ativo</span>
+                <div class="panel-header-actions">
+                    <span id="account-access-badge" class="account-badge">Acesso ativo</span>
+                    <button id="account-close-button" class="button-secondary account-close" type="button">Fechar</button>
+                </div>
             </div>
             <div class="account-grid">
                 <article class="account-item">
@@ -132,7 +147,8 @@
             </div>
         </section>
 
-        <section class="cards" aria-label="Resumo mensal">
+        <div id="dashboard-view" class="view-stack">
+        <section class="cards summary-cards" aria-label="Resumo mensal">
             <article class="card income">
                 <span>Receitas</span>
                 <strong id="total-income">R$ 0,00</strong>
@@ -200,7 +216,7 @@
             </article>
         </section>
 
-        <section class="grid two-columns align-start">
+        <section class="grid two-columns panel-row">
             <article class="panel">
                 <div class="panel-header">
                     <h2>Novo lançamento</h2>
@@ -285,7 +301,7 @@
                     </div>
                 </form>
                 <div class="table-wrapper">
-                    <table>
+                    <table class="transactions-table">
                         <thead>
                             <tr>
                                 <th>Data</th>
@@ -302,7 +318,7 @@
             </article>
         </section>
 
-        <section class="grid two-columns align-start">
+        <section class="grid two-columns panel-row">
             <article class="panel">
                 <div class="panel-header">
                     <h2>Categorias</h2>
@@ -381,6 +397,151 @@
             </div>
             <div id="goals-list" class="goals-list"></div>
         </section>
+        </div>
+
+        <div id="radar-view" class="hidden view-stack" aria-label="Radar financeiro">
+            <section class="panel radar-hero-panel pos" id="radar-hero-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Seu mês</h2>
+                        <span>Projeção do mês corrente</span>
+                    </div>
+                </div>
+                <div class="radar-hero">
+                    <div class="hero-main">
+                        <p class="hero-label">Saldo projetado no fim do mês</p>
+                        <div id="radar-projected-balance" class="hero-value pos">-</div>
+                        <span id="radar-projection-badge" class="status-badge pos">Carregando...</span>
+                        <details class="assumptions">
+                            <summary>Ver premissas</summary>
+                            <ul id="radar-projection-assumptions"></ul>
+                        </details>
+                    </div>
+                    <div class="gauge">
+                        <div class="gauge-stats">
+                            <div class="gauge-stat">
+                                <span>Saldo atual</span>
+                                <strong id="radar-current-balance">-</strong>
+                            </div>
+                            <div class="gauge-stat">
+                                <span>Meta do mês</span>
+                                <strong id="radar-month-goal">-</strong>
+                            </div>
+                            <div class="gauge-stat">
+                                <span>Reserva alvo</span>
+                                <strong id="radar-reserve-target">-</strong>
+                            </div>
+                            <div class="gauge-stat accent">
+                                <span>Pode gastar</span>
+                                <strong id="radar-gauge-safe">-</strong>
+                            </div>
+                        </div>
+                        <div class="gauge-bar" id="radar-gauge-bar-wrap" hidden>
+                            <div class="gauge-bar-fill" id="radar-gauge-bar"></div>
+                        </div>
+                        <small id="radar-gauge-caption" class="gauge-caption">Carregando projeção...</small>
+                    </div>
+                </div>
+            </section>
+
+            <section class="cards radar-cards" aria-label="Indicadores do Radar">
+                <article class="card safe metric-card">
+                    <span class="metric-icon" aria-hidden="true">✓</span>
+                    <span>Pode gastar com segurança</span>
+                    <strong id="radar-safe-total">-</strong>
+                    <small id="radar-safe-caption">-</small>
+                </article>
+                <article class="card blocked metric-card">
+                    <span class="metric-icon" aria-hidden="true">!</span>
+                    <span>Caixa travado (atrasados)</span>
+                    <strong id="radar-blocked-total">-</strong>
+                    <small id="radar-blocked-caption">-</small>
+                </article>
+                <article class="card freela metric-card">
+                    <span class="metric-icon" aria-hidden="true">◎</span>
+                    <span>Precisa de mais um freela?</span>
+                    <strong id="radar-freela-answer">-</strong>
+                    <small id="radar-freela-caption">-</small>
+                </article>
+            </section>
+
+            <section class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Alertas do Radar</h2>
+                        <span>Gerados pelo motor de regras</span>
+                    </div>
+                    <span id="radar-alerts-count" class="muted-label">0 ativo(s)</span>
+                </div>
+                <div id="radar-alerts-list"></div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Quem está travando seu caixa</h2>
+                        <span>Recebíveis vencidos</span>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="radar-table">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th class="num">Valor</th>
+                                <th class="num">Atraso</th>
+                                <th class="num">Impacto</th>
+                            </tr>
+                        </thead>
+                        <tbody id="radar-overdue-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="grid two-columns panel-row radar-tools">
+                <article class="panel mini">
+                    <h3>Preço mínimo do próximo projeto</h3>
+                    <p>Piso por hora: <strong id="radar-min-hourly-rate">-</strong></p>
+                    <div class="inline-input">
+                        <input id="radar-min-price-hours" type="number" value="20" min="1" step="1" aria-label="Horas estimadas">
+                        <button id="radar-min-price-calc" type="button">Calcular</button>
+                    </div>
+                    <p class="mini-result">Para as horas informadas: <span class="big" id="radar-min-price-output">-</span></p>
+                    <small id="radar-min-price-footnote" class="mini-footnote">Valores calculados pelo motor do Radar.</small>
+                </article>
+                <article class="panel mini">
+                    <h3>O que cortar para bater a meta</h3>
+                    <p>Saldo projetado: <strong id="radar-cut-gap">-</strong></p>
+                    <p class="mini-subtitle" id="radar-cut-after">-</p>
+                    <table class="radar-table compact">
+                        <tbody id="radar-cut-body"></tbody>
+                    </table>
+                    <small id="radar-cut-footnote" class="mini-footnote">-</small>
+                </article>
+            </section>
+
+            <section class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Pergunte ao Radar</h2>
+                        <span>Copiloto financeiro</span>
+                    </div>
+                </div>
+                <div class="chat">
+                    <div class="chips" id="radar-chips"></div>
+                    <div class="stream" id="radar-chat-stream">
+                        <div class="msg bot">
+                            Oi! Sou o seu Radar. Pergunte sobre seu mês — ou toque numa das sugestões acima.
+                            <span class="disc">Sugestão, não consultoria financeira.</span>
+                        </div>
+                    </div>
+                    <div class="composer">
+                        <input id="radar-ask-input" type="text" placeholder="Ex.: Quanto posso gastar até o fim do mês?" aria-label="Pergunta ao Radar">
+                        <button id="radar-ask-send" type="button">Enviar</button>
+                    </div>
+                </div>
+            </section>
+        </div>
     </main>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
@@ -464,13 +625,14 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <script src="js/api.js?v=20260616-3"></script>
-    <script src="js/auth.js?v=20260616-3"></script>
-    <script src="js/categories.js?v=20260616-3"></script>
-    <script src="js/dashboard.js?v=20260616-3"></script>
-    <script src="js/transactions.js?v=20260616-3"></script>
-    <script src="js/goals.js?v=20260616-3"></script>
-    <script src="js/app.js?v=20260616-3"></script>
+    <script src="js/api.js?v=20260617-6"></script>
+    <script src="js/auth.js?v=20260617-6"></script>
+    <script src="js/categories.js?v=20260617-6"></script>
+    <script src="js/dashboard.js?v=20260617-6"></script>
+    <script src="js/transactions.js?v=20260617-6"></script>
+    <script src="js/goals.js?v=20260617-6"></script>
+    <script src="js/radar.js?v=20260617-6"></script>
+    <script src="js/app.js?v=20260617-6"></script>
 </body>
 </html>
 

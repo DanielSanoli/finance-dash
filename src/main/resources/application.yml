@@ -20,6 +20,7 @@ spring:
       chat: ${SPRING_AI_CHAT_MODEL:none}
       embedding: none
       image: none
+      moderation: none
       audio:
         speech: none
         transcription: none

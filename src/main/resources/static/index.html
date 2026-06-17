@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FinanceDash</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="stylesheet" href="css/styles.css?v=20260616-2">
+    <link rel="stylesheet" href="css/styles.css?v=20260616-3">
 </head>
 <body>
     <header class="app-header">
@@ -49,7 +49,26 @@
                     <input name="password" type="password" value="demo12345" required>
                 </label>
                 <button id="login-submit" type="submit">Entrar</button>
+                <button id="forgot-tab" class="link-button" type="button">Esqueci minha senha</button>
                 <p id="login-feedback" class="feedback" role="status"></p>
+            </form>
+            <form id="forgot-form" class="form auth-form hidden">
+                <label class="full-width">
+                    Email
+                    <input name="email" type="email" placeholder="voce@email.com" required>
+                </label>
+                <button id="forgot-submit" type="submit">Enviar link de recuperação</button>
+                <button id="forgot-back" class="link-button" type="button">Voltar ao login</button>
+                <p id="forgot-feedback" class="feedback" role="status"></p>
+            </form>
+            <form id="reset-form" class="form auth-form hidden">
+                <input id="reset-token" name="token" type="hidden">
+                <label class="full-width">
+                    Nova senha
+                    <input name="password" type="password" minlength="8" placeholder="Mínimo 8 caracteres" required>
+                </label>
+                <button id="reset-submit" type="submit">Redefinir senha</button>
+                <p id="reset-feedback" class="feedback" role="status"></p>
             </form>
             <form id="register-form" class="form auth-form hidden">
                 <label class="full-width">
@@ -80,7 +99,7 @@
             <div class="panel-header">
                 <div>
                     <h2>Conta e billing</h2>
-                    <span>Base interna para trial e futura cobrança recorrente</span>
+                    <span>Trial, assinatura Pro e status de acesso</span>
                 </div>
                 <span id="account-access-badge" class="account-badge">Acesso ativo</span>
             </div>
@@ -89,6 +108,7 @@
                     <span>Usuário</span>
                     <strong id="account-name">-</strong>
                     <small id="account-email">-</small>
+                    <small id="account-email-verified">-</small>
                 </article>
                 <article class="account-item">
                     <span>Plano</span>
@@ -103,8 +123,12 @@
                 <article class="account-item">
                     <span>Assinatura</span>
                     <strong id="account-subscription-status">TRIALING</strong>
-                    <small id="account-subscription-ends">Gateway ainda não integrado</small>
+                    <small id="account-subscription-ends">Aguardando confirmação de pagamento</small>
                 </article>
+            </div>
+            <div class="account-actions">
+                <button id="checkout-pro-button" type="button">Assinar Pro</button>
+                <p id="checkout-feedback" class="feedback" role="status"></p>
             </div>
         </section>
 
@@ -435,14 +459,18 @@
         </div>
     </div>
 
+    <footer class="app-footer">
+        <a href="/privacy.html">Política de privacidade</a>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <script src="js/api.js?v=20260616-2"></script>
-    <script src="js/auth.js?v=20260616-2"></script>
-    <script src="js/categories.js?v=20260616-2"></script>
-    <script src="js/dashboard.js?v=20260616-2"></script>
-    <script src="js/transactions.js?v=20260616-2"></script>
-    <script src="js/goals.js?v=20260616-2"></script>
-    <script src="js/app.js?v=20260616-2"></script>
+    <script src="js/api.js?v=20260616-3"></script>
+    <script src="js/auth.js?v=20260616-3"></script>
+    <script src="js/categories.js?v=20260616-3"></script>
+    <script src="js/dashboard.js?v=20260616-3"></script>
+    <script src="js/transactions.js?v=20260616-3"></script>
+    <script src="js/goals.js?v=20260616-3"></script>
+    <script src="js/app.js?v=20260616-3"></script>
 </body>
 </html>
 

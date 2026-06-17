@@ -26,11 +26,13 @@ Oferecer uma API REST simples e extensível para registrar lançamentos financei
 
 - Cadastro e login com email e senha
 - Senha criptografada com BCrypt
-- Sessão via JWT
+- Sessão via JWT com refresh token rotativo
+- Recuperação de senha e verificação de email por link
+- Rate limit de login por email
 - Dados financeiros isolados por usuário autenticado
 - Conta demo criada automaticamente: `demo@financedash.com` / `demo12345`
-- Base inicial para plano, trial e status de assinatura
-- Área de conta no frontend com plano, status, trial e assinatura
+- Base para plano, trial e status de assinatura
+- Área de conta no frontend com plano, status, trial, email verificado e checkout Pro
 
 ### Lançamentos financeiros
 
@@ -67,7 +69,13 @@ Oferecer uma API REST simples e extensível para registrar lançamentos financei
 - O MVP cria contas em trial automaticamente
 - APIs financeiras retornam `402 SUBSCRIPTION_REQUIRED` quando o trial expira ou a assinatura fica `PAST_DUE`/`CANCELED`
 - A tela de conta mostra o bloqueio e mantém o usuário logado para visualizar o status
-- Integração real com gateway de pagamento deve atualizar esses campos por webhook
+- Checkout Pro via Asaas (`POST /api/v1/billing/checkout/pro`) com webhook para ativar/cancelar assinatura
+
+### Conformidade (LGPD)
+
+- Página pública em `/privacy.html`
+- Logs de erro em endpoints de auth não incluem stack trace completo
+- Emails transacionais (verificação e reset) registrados em log sem conteúdo sensível quando `MAIL_ENABLED=false`
 
 ## Endpoints
 
@@ -81,9 +89,20 @@ Authorization: Bearer {token}
 
 | Método | Endpoint | Descrição |
 | --- | --- | --- |
-| POST | `/api/v1/auth/register` | Cria uma conta e retorna JWT |
-| POST | `/api/v1/auth/login` | Autentica e retorna JWT |
+| POST | `/api/v1/auth/register` | Cria uma conta e retorna JWT + refresh token |
+| POST | `/api/v1/auth/login` | Autentica e retorna JWT + refresh token |
+| POST | `/api/v1/auth/refresh` | Renova JWT usando refresh token |
+| POST | `/api/v1/auth/forgot-password` | Solicita link de recuperação de senha |
+| POST | `/api/v1/auth/reset-password` | Redefine senha com token |
+| GET | `/api/v1/auth/verify-email?token=` | Confirma email |
 | GET | `/api/v1/auth/me` | Retorna o usuário autenticado |
+
+### Billing
+
+| Método | Endpoint | Descrição |
+| --- | --- | --- |
+| POST | `/api/v1/billing/checkout/pro` | Cria checkout/assinatura Pro no Asaas |
+| POST | `/api/v1/billing/webhook` | Webhook do Asaas (header `asaas-access-token`) |
 
 ### Transactions
 
@@ -291,7 +310,26 @@ $env:DATABASE_PASSWORD="financedash"
 $env:SERVER_PORT="8080"
 $env:JWT_SECRET="troque-este-segredo-em-producao"
 $env:JWT_EXPIRATION_SECONDS="86400"
+$env:PUBLIC_BASE_URL="http://localhost:8080"
+$env:ASAAS_ENABLED="false"
+$env:ASAAS_API_KEY=""
+$env:ASAAS_WEBHOOK_TOKEN=""
+$env:MAIL_ENABLED="false"
 ```
+
+### Asaas (checkout Pro)
+
+Para habilitar cobrança real no sandbox ou produção:
+
+```powershell
+$env:ASAAS_ENABLED="true"
+$env:ASAAS_API_KEY="sua-chave-asaas"
+$env:ASAAS_BASE_URL="https://api-sandbox.asaas.com/v3"
+$env:ASAAS_WEBHOOK_TOKEN="token-configurado-no-asaas"
+$env:PUBLIC_BASE_URL="https://seu-dominio.com"
+```
+
+Configure no painel Asaas um webhook apontando para `POST /api/v1/billing/webhook` com o header `asaas-access-token`.
 
 ## Como rodar com Docker Compose
 
@@ -393,10 +431,12 @@ src/main/resources/static/
 
 Funcionalidades iniciais:
 
-- login, cadastro, logout e conta demo;
+- login, cadastro, logout, recuperação de senha e verificação de email;
+- refresh token automático no frontend;
 - envio automático do token JWT nas chamadas da API;
 - isolamento visual e funcional dos dados por usuário autenticado;
-- seção de conta/billing com plano, trial, status e aviso de bloqueio;
+- seção de conta/billing com plano, trial, status, checkout Pro e aviso de bloqueio;
+- link para política de privacidade (`/privacy.html`);
 - cards de receitas, despesas e saldo mensal;
 - gráficos com Chart.js para receitas/despesas por categoria;
 - formulário para criar e editar lançamentos;
@@ -432,11 +472,8 @@ mvn clean package
 
 ## Roadmap futuro
 
-- Frontend com dashboard visual
-- Chart.js
 - Importação CSV
 - Exportação PDF
-- Autenticação
-- Multiusuário
-- Deploy em cloud
+- Envio real de email (SMTP) em produção
+- Painel admin e métricas de assinatura
 

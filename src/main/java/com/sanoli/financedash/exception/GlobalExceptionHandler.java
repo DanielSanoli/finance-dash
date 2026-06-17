@@ -2,6 +2,8 @@ package com.sanoli.financedash.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -14,6 +16,8 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException exception, HttpServletRequest request) {
@@ -53,7 +57,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception exception, HttpServletRequest request) {
+        if (isSensitiveAuthPath(request.getRequestURI())) {
+            log.error("Unexpected error on auth endpoint {}", request.getRequestURI());
+        } else {
+            log.error("Unexpected error on {}", request.getRequestURI(), exception);
+        }
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR", "Erro inesperado", request.getRequestURI());
+    }
+
+    private boolean isSensitiveAuthPath(String path) {
+        return path != null && path.startsWith("/api/v1/auth");
     }
 
     private ResponseEntity<ErrorResponse> buildResponse(HttpStatus status, String error, String message, String path) {

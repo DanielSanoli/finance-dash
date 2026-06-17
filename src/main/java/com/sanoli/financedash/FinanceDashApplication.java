@@ -2,8 +2,13 @@ package com.sanoli.financedash;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import com.sanoli.financedash.config.AsaasProperties;
+import com.sanoli.financedash.config.AuthProperties;
+import com.sanoli.financedash.config.MailProperties;
 
 @SpringBootApplication
+@EnableConfigurationProperties({AsaasProperties.class, AuthProperties.class, MailProperties.class})
 public class FinanceDashApplication {
 
     public static void main(String[] args) {

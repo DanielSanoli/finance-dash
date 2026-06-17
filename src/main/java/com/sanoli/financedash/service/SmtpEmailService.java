@@ -88,6 +88,6 @@ public class SmtpEmailService implements EmailService {
         if (email == null || !email.contains("@")) {
             return "***";
         }
-        return email.substring(email.indexOf('@') - 1);
+        return "*" + email.substring(email.indexOf('@'));
     }
 }

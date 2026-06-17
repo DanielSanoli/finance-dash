@@ -79,7 +79,7 @@ public class ResendEmailService implements EmailService {
                     .build();
             resend.emails().send(params);
             log.info("E-mail enviado via Resend para conta terminando em {}", maskEmail(to));
-        } catch (ResendException exception) {
+        } catch (Exception exception) {
             log.error("Falha ao enviar e-mail via Resend para conta terminando em {}", maskEmail(to), exception);
             throw new BusinessException("Não foi possível enviar o e-mail. Tente novamente mais tarde.");
         }
@@ -89,6 +89,6 @@ public class ResendEmailService implements EmailService {
         if (email == null || !email.contains("@")) {
             return "***";
         }
-        return email.substring(email.indexOf('@') - 1);
+        return "*" + email.substring(email.indexOf('@'));
     }
 }

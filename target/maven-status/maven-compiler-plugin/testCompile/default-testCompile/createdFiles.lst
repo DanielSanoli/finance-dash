@@ -15,4 +15,5 @@ com\sanoli\financedash\radar\ai\RadarCopilotServiceTest.class
 com\sanoli\financedash\service\GoalServiceTest.class
 com\sanoli\financedash\service\CategoryServiceTest.class
 com\sanoli\financedash\config\AsaasStartupValidatorTest.class
+com\sanoli\financedash\service\ResendEmailServiceTest.class
 com\sanoli\financedash\service\SmtpEmailServiceTest.class

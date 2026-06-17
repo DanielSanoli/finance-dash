@@ -31,22 +31,34 @@ public class MailStartupValidator implements ApplicationRunner {
         if (isBlank(mailProperties.getFrom())) {
             missing.add("MAIL_FROM (app.mail.from)");
         }
-        if (isBlank(mailProperties.getHost())) {
-            missing.add("SPRING_MAIL_HOST (spring.mail.host)");
-        }
-        if (isBlank(mailProperties.getUsername())) {
-            missing.add("SPRING_MAIL_USERNAME (spring.mail.username)");
-        }
-        if (isBlank(mailProperties.getPassword())) {
-            missing.add("SPRING_MAIL_PASSWORD (spring.mail.password)");
+
+        if (usesResend()) {
+            if (isBlank(mailProperties.getApiKey())) {
+                missing.add("RESEND_API_KEY (app.mail.api-key)");
+            }
+        } else {
+            if (isBlank(mailProperties.getHost())) {
+                missing.add("SPRING_MAIL_HOST (spring.mail.host)");
+            }
+            if (isBlank(mailProperties.getUsername())) {
+                missing.add("SPRING_MAIL_USERNAME (spring.mail.username)");
+            }
+            if (isBlank(mailProperties.getPassword())) {
+                missing.add("SPRING_MAIL_PASSWORD (spring.mail.password)");
+            }
         }
 
         if (!missing.isEmpty()) {
+            String mode = usesResend() ? "Resend (HTTP API)" : "SMTP";
             throw new IllegalStateException(
-                    "E-mail habilitado (MAIL_ENABLED=true), mas configuração SMTP incompleta. Defina: "
+                    "E-mail habilitado (MAIL_ENABLED=true), mas configuração " + mode + " incompleta. Defina: "
                             + String.join(", ", missing)
             );
         }
+    }
+
+    private boolean usesResend() {
+        return !"smtp".equalsIgnoreCase(mailProperties.getProvider());
     }
 
     private boolean isBlank(String value) {

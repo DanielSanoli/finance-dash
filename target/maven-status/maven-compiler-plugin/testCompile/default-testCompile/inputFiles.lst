@@ -14,5 +14,6 @@ C:\Users\Daniel\projetos\finance-dash\src\test\java\com\sanoli\financedash\servi
 C:\Users\Daniel\projetos\finance-dash\src\test\java\com\sanoli\financedash\service\CategoryServiceTest.java
 C:\Users\Daniel\projetos\finance-dash\src\test\java\com\sanoli\financedash\service\DashboardServiceTest.java
 C:\Users\Daniel\projetos\finance-dash\src\test\java\com\sanoli\financedash\service\GoalServiceTest.java
+C:\Users\Daniel\projetos\finance-dash\src\test\java\com\sanoli\financedash\service\ResendEmailServiceTest.java
 C:\Users\Daniel\projetos\finance-dash\src\test\java\com\sanoli\financedash\service\SmtpEmailServiceTest.java
 C:\Users\Daniel\projetos\finance-dash\src\test\java\com\sanoli\financedash\service\TransactionServiceTest.java

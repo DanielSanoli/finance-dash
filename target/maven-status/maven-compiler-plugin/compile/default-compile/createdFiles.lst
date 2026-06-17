@@ -32,11 +32,13 @@ com\sanoli\financedash\radar\ai\RadarCopilotService.class
 com\sanoli\financedash\security\CurrentUserService.class
 com\sanoli\financedash\config\RadarAiProperties.class
 com\sanoli\financedash\dto\AuthResponse.class
+com\sanoli\financedash\service\ResendEmailService.class
 com\sanoli\financedash\dto\CheckoutResponse.class
 com\sanoli\financedash\repository\UserActionTokenRepository.class
 com\sanoli\financedash\dto\RadarAskRequest.class
 com\sanoli\financedash\radar\engine\MinimumProjectPriceResult.class
 com\sanoli\financedash\billing\AsaasClient$AsaasSubscriptionResult.class
+com\sanoli\financedash\config\MailConfig$EnabledMailConfiguration.class
 com\sanoli\financedash\service\GoalService.class
 com\sanoli\financedash\security\JwtService$1.class
 com\sanoli\financedash\dto\ForgotPasswordRequest.class

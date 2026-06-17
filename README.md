@@ -426,21 +426,29 @@ Opção recomendada, usando a URL padrão do Railway:
 
 ```text
 DATABASE_URL=${{Postgres.DATABASE_URL}}
-SERVER_PORT=${{PORT}}
 ```
 
-O app converte automaticamente URLs `postgres://` ou `postgresql://` para o formato JDBC exigido pelo Spring (`jdbc:postgresql://...`). Se preferir evitar montagem manual de URL, também pode configurar as partes do PostgreSQL:
+O Railway injeta `PORT` automaticamente; o app usa essa variável para `server.port`. **Não** defina `SERVER_PORT=${{PORT}}` — erros de digitação (ex.: `${{PORT}` sem `}}`) impedem o boot.
+
+No serviço da aplicação, abra **Variables → Add Reference** e escolha o serviço PostgreSQL. Use o nome **exato** do serviço (ex.: se o serviço se chama `PostgreSQL`, use `${{PostgreSQL.DATABASE_URL}}`, não `${{Postgres.DATABASE_URL}}`).
+
+Opção A — uma variável:
 
 ```text
-PGHOST=${{Postgres.PGHOST}}
-PGPORT=${{Postgres.PGPORT}}
-PGDATABASE=${{Postgres.PGDATABASE}}
-PGUSER=${{Postgres.PGUSER}}
-PGPASSWORD=${{Postgres.PGPASSWORD}}
-SERVER_PORT=${{PORT}}
+DATABASE_URL=${{PostgreSQL.DATABASE_URL}}
 ```
 
-Evite quebrar a URL em múltiplas linhas ou deixar um `$` isolado no final. Se o deploy falhar com `database "$" does not exist`, remova a `DATABASE_URL` manual quebrada e use `DATABASE_URL=${{Postgres.DATABASE_URL}}` ou as variáveis `PG*` acima. O app também tenta corrigir `jdbc:postgresql://.../$` usando o banco padrão `railway`.
+Opção B — partes separadas (substitua `PostgreSQL` pelo nome do seu serviço):
+
+```text
+PGHOST=${{PostgreSQL.PGHOST}}
+PGPORT=${{PostgreSQL.PGPORT}}
+PGDATABASE=${{PostgreSQL.PGDATABASE}}
+PGUSER=${{PostgreSQL.PGUSER}}
+PGPASSWORD=${{PostgreSQL.PGPASSWORD}}
+```
+
+O app converte automaticamente URLs `postgres://` ou `postgresql://` para o formato JDBC exigido pelo Spring (`jdbc:postgresql://...`). Se o deploy falhar com `URL must start with 'jdbc'`, a `DATABASE_URL` está literal (referência `${{...}}` com nome de serviço errado) ou apontando para URL `postgres://` sem conversão — use **Add Reference** no Railway ou redeploy com a versão atual do código. Se falhar com `database "$" does not exist`, remova a `DATABASE_URL` manual quebrada e use referência `${{PostgreSQL.DATABASE_URL}}` ou as variáveis `PG*` acima.
 
 Se o deploy falhar com erro de Hibernate `Unable to determine Dialect`, normalmente a variável `DATABASE_URL` está ausente, vazia ou apontando para uma referência de serviço incorreta no Railway.
 

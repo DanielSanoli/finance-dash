@@ -65,7 +65,9 @@ app:
     pro-plan-value: ${ASAAS_PRO_PLAN_VALUE:29.90}
   mail:
     enabled: ${MAIL_ENABLED:false}
+    provider: ${MAIL_PROVIDER:resend}
     from: ${MAIL_FROM:noreply@financedash.com}
+    api-key: ${RESEND_API_KEY:}
     host: ${SPRING_MAIL_HOST:}
     username: ${SPRING_MAIL_USERNAME:}
     password: ${SPRING_MAIL_PASSWORD:}

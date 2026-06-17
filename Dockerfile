@@ -3,7 +3,8 @@ WORKDIR /app
 COPY pom.xml .
 RUN mvn -B dependency:go-offline
 COPY src ./src
-RUN mvn -B clean package
+# Testes rodam no CI/local; a imagem de produção só empacota o JAR.
+RUN mvn -B clean package -DskipTests
 
 FROM eclipse-temurin:21-jre
 WORKDIR /app

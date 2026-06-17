@@ -3,6 +3,7 @@ package com.sanoli.financedash.config;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -66,5 +67,33 @@ class MailStartupValidatorTest {
         mailProperties.setApiKey("re_test_key");
 
         assertThatCode(validator::validateRequiredConfiguration).doesNotThrowAnyException();
+    }
+
+    @Test
+    void shouldFailWhenFromAddressIsMalformed() {
+        mailProperties.setProvider("resend");
+        mailProperties.setApiKey("re_test_key");
+        mailProperties.setFrom("FinanceDash <noreply@>");
+
+        assertThatThrownBy(validator::validateRequiredConfiguration)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("MAIL_FROM invalido");
+    }
+
+    @Test
+    void shouldFailWhenFromUsesRailwayDomain() {
+        mailProperties.setProvider("resend");
+        mailProperties.setApiKey("re_test_key");
+        mailProperties.setFrom("noreply@finance-dash-production-a25f.up.railway.app");
+
+        assertThatThrownBy(validator::validateRequiredConfiguration)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("dominio railway.app");
+    }
+
+    @Test
+    void shouldExtractEmailAddressFromDisplayNameFormat() {
+        assertThat(MailStartupValidator.extractEmailAddress("FinanceDash <onboarding@resend.dev>"))
+                .isEqualTo("onboarding@resend.dev");
     }
 }

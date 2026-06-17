@@ -3,6 +3,7 @@ com\sanoli\financedash\dto\RadarAskResponse.class
 com\sanoli\financedash\service\AuthService.class
 com\sanoli\financedash\config\DataSeeder.class
 com\sanoli\financedash\service\DashboardService$CategoryKey.class
+com\sanoli\financedash\config\MailStartupValidator.class
 com\sanoli\financedash\exception\ErrorResponse.class
 com\sanoli\financedash\domain\TransactionStatus.class
 com\sanoli\financedash\repository\AlertRepository.class
@@ -65,6 +66,7 @@ com\sanoli\financedash\radar\ai\RadarToolInvocationContext.class
 com\sanoli\financedash\radar\engine\CutAnalysisResult.class
 com\sanoli\financedash\config\MailProperties.class
 com\sanoli\financedash\radar\ai\RadarEngineTools.class
+com\sanoli\financedash\config\MailConfig.class
 com\sanoli\financedash\repository\TransactionRepository.class
 com\sanoli\financedash\service\DashboardService.class
 com\sanoli\financedash\domain\DigestFrequency.class
@@ -100,6 +102,7 @@ com\sanoli\financedash\radar\digest\RadarDigestService.class
 com\sanoli\financedash\dto\GoalRequest.class
 com\sanoli\financedash\dto\TransactionResponse.class
 com\sanoli\financedash\config\AsaasStartupValidator.class
+com\sanoli\financedash\service\SmtpEmailService.class
 com\sanoli\financedash\radar\engine\OverdueReceivableItem.class
 com\sanoli\financedash\service\TransactionService.class
 com\sanoli\financedash\FinanceDashApplication.class

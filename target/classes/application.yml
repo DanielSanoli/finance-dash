@@ -15,6 +15,18 @@ spring:
         format_sql: true
   jackson:
     default-property-inclusion: non_null
+  mail:
+    host: ${SPRING_MAIL_HOST:}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME:}
+    password: ${SPRING_MAIL_PASSWORD:}
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: ${SPRING_MAIL_SMTP_AUTH:true}
+          starttls:
+            enable: ${SPRING_MAIL_SMTP_STARTTLS_ENABLE:true}
   ai:
     model:
       chat: ${SPRING_AI_CHAT_MODEL:none}
@@ -40,11 +52,11 @@ app:
       secret: ${JWT_SECRET:finance-dash-dev-secret-change-me}
       expiration-seconds: ${JWT_EXPIRATION_SECONDS:86400}
   auth:
-    login-max-attempts: 5
-    login-window-minutes: 15
-    password-reset-expiration-hours: 2
-    email-verification-expiration-hours: 48
-    refresh-token-expiration-days: 30
+    login-max-attempts: ${AUTH_LOGIN_MAX_ATTEMPTS:5}
+    login-window-minutes: ${AUTH_LOGIN_WINDOW_MINUTES:15}
+    password-reset-expiration-hours: ${AUTH_PASSWORD_RESET_EXPIRATION_HOURS:2}
+    email-verification-expiration-hours: ${AUTH_EMAIL_VERIFICATION_EXPIRATION_HOURS:48}
+    refresh-token-expiration-days: ${AUTH_REFRESH_TOKEN_EXPIRATION_DAYS:30}
   asaas:
     enabled: ${ASAAS_ENABLED:false}
     api-key: ${ASAAS_API_KEY:}
@@ -54,6 +66,9 @@ app:
   mail:
     enabled: ${MAIL_ENABLED:false}
     from: ${MAIL_FROM:noreply@financedash.com}
+    host: ${SPRING_MAIL_HOST:}
+    username: ${SPRING_MAIL_USERNAME:}
+    password: ${SPRING_MAIL_PASSWORD:}
   radar:
     timezone: ${RADAR_TIMEZONE:America/Sao_Paulo}
     alerts-cron: ${RADAR_ALERTS_CRON:0 0 8 * * *}

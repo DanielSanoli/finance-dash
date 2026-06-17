@@ -1,5 +1,6 @@
 com\sanoli\financedash\domain\AppUserTest.class
 com\sanoli\financedash\config\RailwayDatabaseUrlEnvironmentPostProcessorTest.class
+com\sanoli\financedash\config\MailStartupValidatorTest.class
 com\sanoli\financedash\integration\TenantIsolationIntegrationTest.class
 com\sanoli\financedash\radar\engine\RadarEngineServiceTest.class
 com\sanoli\financedash\controller\TransactionControllerTest.class
@@ -14,3 +15,4 @@ com\sanoli\financedash\radar\ai\RadarCopilotServiceTest.class
 com\sanoli\financedash\service\GoalServiceTest.class
 com\sanoli\financedash\service\CategoryServiceTest.class
 com\sanoli\financedash\config\AsaasStartupValidatorTest.class
+com\sanoli\financedash\service\SmtpEmailServiceTest.class

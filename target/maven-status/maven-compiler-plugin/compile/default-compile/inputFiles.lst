@@ -3,7 +3,9 @@ C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\confi
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\config\AsaasStartupValidator.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\config\AuthProperties.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\config\DataSeeder.java
+C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\config\MailConfig.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\config\MailProperties.java
+C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\config\MailStartupValidator.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\config\OpenApiConfig.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\config\RadarAiProperties.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\config\RadarConfig.java
@@ -108,6 +110,7 @@ C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\servi
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\service\GoalService.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\service\LoggingEmailService.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\service\LoginRateLimiter.java
+C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\service\SmtpEmailService.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\service\TokenService.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\service\TransactionService.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\service\UserSettingsService.java

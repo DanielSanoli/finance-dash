@@ -4,7 +4,9 @@ C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\confi
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\config\DataSeeder.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\config\MailProperties.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\config\OpenApiConfig.java
+C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\config\RadarAiProperties.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\config\RadarConfig.java
+C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\config\RadarDigestProperties.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\config\RailwayDatabaseUrlEnvironmentPostProcessor.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\controller\AuthController.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\controller\BillingController.java
@@ -19,6 +21,7 @@ C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\domai
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\domain\AlertType.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\domain\AppUser.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\domain\Category.java
+C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\domain\DigestFrequency.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\domain\Goal.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\domain\GoalType.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\domain\RecurrenceRule.java
@@ -45,6 +48,8 @@ C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\dto\G
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\dto\LoginRequest.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\dto\MessageResponse.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\dto\MonthlyDashboardResponse.java
+C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\dto\RadarAskRequest.java
+C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\dto\RadarAskResponse.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\dto\RefreshTokenRequest.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\dto\RegisterRequest.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\dto\ResetPasswordRequest.java
@@ -58,6 +63,18 @@ C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\excep
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\exception\GlobalExceptionHandler.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\exception\ResourceNotFoundException.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\FinanceDashApplication.java
+C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\radar\ai\RadarAnswerComposer.java
+C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\radar\ai\RadarCopilotService.java
+C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\radar\ai\RadarEngineTools.java
+C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\radar\ai\RadarToolInvocationContext.java
+C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\radar\digest\RadarDigestComposer.java
+C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\radar\digest\RadarDigestScheduler.java
+C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\radar\digest\RadarDigestService.java
+C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\radar\digest\RadarDigestSnapshot.java
+C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\radar\engine\CutAnalysisItem.java
+C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\radar\engine\CutAnalysisResult.java
+C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\radar\engine\FreelanceGapResult.java
+C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\radar\engine\MinimumProjectPriceResult.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\radar\engine\MonthProjectionResult.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\radar\engine\OverdueReceivableItem.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\radar\engine\OverdueReceivablesResult.java

@@ -1,5 +1,6 @@
 package com.sanoli.financedash.service;
 
+import com.sanoli.financedash.domain.DigestFrequency;
 import com.sanoli.financedash.domain.UserSettings;
 import com.sanoli.financedash.dto.UserSettingsRequest;
 import com.sanoli.financedash.dto.UserSettingsResponse;
@@ -35,6 +36,9 @@ public class UserSettingsService {
         settings.setBillableHoursPerMonth(request.billableHoursPerMonth());
         settings.setTaxRate(request.taxRate());
         settings.setDesiredMargin(request.desiredMargin());
+        if (request.digestFrequency() != null) {
+            settings.setDigestFrequency(request.digestFrequency());
+        }
         return UserSettingsResponse.fromEntity(userSettingsRepository.save(settings));
     }
 
@@ -44,6 +48,7 @@ public class UserSettingsService {
                 .orElseGet(() -> {
                     UserSettings settings = new UserSettings();
                     settings.setUserId(userId);
+                    settings.setDigestFrequency(DigestFrequency.WEEKLY);
                     return userSettingsRepository.save(settings);
                 });
     }

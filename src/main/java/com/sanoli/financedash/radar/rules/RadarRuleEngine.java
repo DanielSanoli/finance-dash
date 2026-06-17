@@ -6,6 +6,7 @@ import com.sanoli.financedash.domain.Alert;
 import com.sanoli.financedash.domain.AlertType;
 import com.sanoli.financedash.domain.Severity;
 import com.sanoli.financedash.domain.UserSettings;
+import com.sanoli.financedash.radar.digest.RadarDigestService;
 import com.sanoli.financedash.radar.engine.MonthProjectionResult;
 import com.sanoli.financedash.radar.engine.OverdueReceivableItem;
 import com.sanoli.financedash.radar.engine.OverdueReceivablesResult;
@@ -36,6 +37,7 @@ public class RadarRuleEngine {
     private final RadarEngineService radarEngineService;
     private final AlertRepository alertRepository;
     private final UserSettingsService userSettingsService;
+    private final RadarDigestService radarDigestService;
     private final ObjectMapper objectMapper;
     private final Clock clock;
 
@@ -43,12 +45,14 @@ public class RadarRuleEngine {
             RadarEngineService radarEngineService,
             AlertRepository alertRepository,
             UserSettingsService userSettingsService,
+            RadarDigestService radarDigestService,
             ObjectMapper objectMapper,
             Clock clock
     ) {
         this.radarEngineService = radarEngineService;
         this.alertRepository = alertRepository;
         this.userSettingsService = userSettingsService;
+        this.radarDigestService = radarDigestService;
         this.objectMapper = objectMapper;
         this.clock = clock;
     }
@@ -123,7 +127,11 @@ public class RadarRuleEngine {
         alert.setMessage(message);
         alert.setActionSuggestion(actionSuggestion);
         alert.setDataSnapshot(toJson(snapshot));
-        created.add(alertRepository.save(alert));
+        Alert saved = alertRepository.save(alert);
+        created.add(saved);
+        if (severity == Severity.CRITICAL) {
+            radarDigestService.notifyCriticalAlert(userId, saved);
+        }
     }
 
     private String toJson(Map<String, ?> snapshot) {

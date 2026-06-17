@@ -2,6 +2,8 @@ package com.sanoli.financedash.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -10,6 +12,7 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -41,6 +44,12 @@ public class UserSettings {
 
     @Column(precision = 9, scale = 4)
     private BigDecimal desiredMargin;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "varchar(20) default 'WEEKLY'")
+    private DigestFrequency digestFrequency = DigestFrequency.WEEKLY;
+
+    private Instant lastDigestSentAt;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -122,6 +131,22 @@ public class UserSettings {
 
     public void setDesiredMargin(BigDecimal desiredMargin) {
         this.desiredMargin = desiredMargin;
+    }
+
+    public DigestFrequency getDigestFrequency() {
+        return digestFrequency;
+    }
+
+    public void setDigestFrequency(DigestFrequency digestFrequency) {
+        this.digestFrequency = digestFrequency;
+    }
+
+    public Instant getLastDigestSentAt() {
+        return lastDigestSentAt;
+    }
+
+    public void setLastDigestSentAt(Instant lastDigestSentAt) {
+        this.lastDigestSentAt = lastDigestSentAt;
     }
 
     public LocalDateTime getCreatedAt() {

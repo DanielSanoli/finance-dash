@@ -88,9 +88,9 @@ precisaMaisFreela, precoMinimoProjeto, analisarCortes).
 - [x] **R0 — Modelo de dados.**
 - [x] **R1 — Motor de cálculo (5.1, 5.2, 5.3).**
 - [x] **R2 — Regras/alertas + job agendado.**
-- [ ] **R3 — Copiloto IA (Spring AI function calling).**
-- [ ] **R4 — Proatividade (digest por e-mail).**
-- [ ] **R5 — Diferenciais (5.4, 5.5, 5.6).**
+- [x] **R3 — Copiloto IA (Spring AI function calling).**
+- [x] **R4 — Proatividade (digest por e-mail).**
+- [x] **R5 — Diferenciais (5.4, 5.5, 5.6).**
 
 ---
 

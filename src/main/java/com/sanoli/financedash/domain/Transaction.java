@@ -47,6 +47,27 @@ public class Transaction {
     @Column(nullable = false)
     private LocalDate transactionDate;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "varchar(20) default 'PAID'")
+    private TransactionStatus status = TransactionStatus.PAID;
+
+    private LocalDate dueDate;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean recurring = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "varchar(20) default 'NONE'")
+    private RecurrenceRule recurrenceRule = RecurrenceRule.NONE;
+
+    @Column(name = "client_id")
+    private UUID clientId;
+
+    @Column(name = "client_name")
+    private String clientName;
+
+    private Boolean essential;
+
     private String paymentMethod;
 
     @Column(length = 1000)
@@ -63,6 +84,15 @@ public class Transaction {
         LocalDateTime now = LocalDateTime.now();
         createdAt = now;
         updatedAt = now;
+        if (status == null) {
+            status = TransactionStatus.PAID;
+        }
+        if (recurrenceRule == null) {
+            recurrenceRule = RecurrenceRule.NONE;
+        }
+        if (dueDate == null) {
+            dueDate = transactionDate;
+        }
     }
 
     @PreUpdate
@@ -124,6 +154,62 @@ public class Transaction {
 
     public void setTransactionDate(LocalDate transactionDate) {
         this.transactionDate = transactionDate;
+    }
+
+    public TransactionStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(TransactionStatus status) {
+        this.status = status;
+    }
+
+    public LocalDate getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(LocalDate dueDate) {
+        this.dueDate = dueDate;
+    }
+
+    public boolean isRecurring() {
+        return recurring;
+    }
+
+    public void setRecurring(boolean recurring) {
+        this.recurring = recurring;
+    }
+
+    public RecurrenceRule getRecurrenceRule() {
+        return recurrenceRule;
+    }
+
+    public void setRecurrenceRule(RecurrenceRule recurrenceRule) {
+        this.recurrenceRule = recurrenceRule;
+    }
+
+    public UUID getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(UUID clientId) {
+        this.clientId = clientId;
+    }
+
+    public String getClientName() {
+        return clientName;
+    }
+
+    public void setClientName(String clientName) {
+        this.clientName = clientName;
+    }
+
+    public Boolean getEssential() {
+        return essential;
+    }
+
+    public void setEssential(Boolean essential) {
+        this.essential = essential;
     }
 
     public String getPaymentMethod() {

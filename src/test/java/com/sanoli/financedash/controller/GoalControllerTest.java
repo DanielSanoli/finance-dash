@@ -2,6 +2,8 @@ package com.sanoli.financedash.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sanoli.financedash.exception.GlobalExceptionHandler;
+import com.sanoli.financedash.security.JwtAuthenticationFilter;
+import com.sanoli.financedash.security.SubscriptionAccessFilter;
 import com.sanoli.financedash.service.GoalService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,12 @@ class GoalControllerTest {
 
     @MockBean
     private GoalService goalService;
+
+    @MockBean
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @MockBean
+    private SubscriptionAccessFilter subscriptionAccessFilter;
 
     @Test
     void shouldRejectGoalWithoutTitle() throws Exception {

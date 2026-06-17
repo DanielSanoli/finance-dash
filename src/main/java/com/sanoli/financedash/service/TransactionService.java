@@ -1,16 +1,21 @@
 package com.sanoli.financedash.service;
 
 import com.sanoli.financedash.domain.Category;
+import com.sanoli.financedash.domain.RecurrenceRule;
 import com.sanoli.financedash.domain.Transaction;
+import com.sanoli.financedash.domain.TransactionStatus;
 import com.sanoli.financedash.domain.TransactionType;
 import com.sanoli.financedash.dto.TransactionRequest;
 import com.sanoli.financedash.dto.TransactionResponse;
 import com.sanoli.financedash.exception.BusinessException;
 import com.sanoli.financedash.exception.ResourceNotFoundException;
+import com.sanoli.financedash.radar.rules.RadarRuleEngine;
 import com.sanoli.financedash.repository.CategoryRepository;
 import com.sanoli.financedash.repository.TransactionRepository;
 import com.sanoli.financedash.security.CurrentUserService;
 import jakarta.persistence.criteria.JoinType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -24,21 +29,40 @@ import java.util.UUID;
 @Service
 public class TransactionService {
 
+    private static final Logger log = LoggerFactory.getLogger(TransactionService.class);
+
     private final TransactionRepository transactionRepository;
     private final CategoryRepository categoryRepository;
     private final CurrentUserService currentUserService;
+    private final RadarRuleEngine radarRuleEngine;
 
-    public TransactionService(TransactionRepository transactionRepository, CategoryRepository categoryRepository, CurrentUserService currentUserService) {
+    public TransactionService(
+            TransactionRepository transactionRepository,
+            CategoryRepository categoryRepository,
+            CurrentUserService currentUserService,
+            RadarRuleEngine radarRuleEngine
+    ) {
         this.transactionRepository = transactionRepository;
         this.categoryRepository = categoryRepository;
         this.currentUserService = currentUserService;
+        this.radarRuleEngine = radarRuleEngine;
     }
 
     @Transactional
     public TransactionResponse create(TransactionRequest request) {
         Transaction transaction = new Transaction();
         applyRequest(transaction, request);
-        return TransactionResponse.fromEntity(transactionRepository.save(transaction));
+        TransactionResponse response = TransactionResponse.fromEntity(transactionRepository.save(transaction));
+        evaluateRadarRules();
+        return response;
+    }
+
+    private void evaluateRadarRules() {
+        try {
+            radarRuleEngine.evaluate(currentUserService.getCurrentUserId());
+        } catch (RuntimeException exception) {
+            log.warn("Falha ao avaliar regras do Radar após lançamento");
+        }
     }
 
     @Transactional(readOnly = true)
@@ -81,6 +105,13 @@ public class TransactionService {
         transaction.setType(request.type());
         transaction.setCategory(category);
         transaction.setTransactionDate(request.transactionDate());
+        transaction.setStatus(request.status() != null ? request.status() : TransactionStatus.PAID);
+        transaction.setDueDate(request.dueDate() != null ? request.dueDate() : request.transactionDate());
+        transaction.setRecurring(Boolean.TRUE.equals(request.isRecurring()));
+        transaction.setRecurrenceRule(request.recurrenceRule() != null ? request.recurrenceRule() : RecurrenceRule.NONE);
+        transaction.setClientId(request.clientId());
+        transaction.setClientName(request.clientName());
+        transaction.setEssential(request.essential());
         transaction.setPaymentMethod(request.paymentMethod());
         transaction.setNotes(request.notes());
     }

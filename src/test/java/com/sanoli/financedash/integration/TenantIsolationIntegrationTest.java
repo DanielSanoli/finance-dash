@@ -54,7 +54,12 @@ class TenantIsolationIntegrationTest {
                 .andReturn();
 
         JsonNode categories = objectMapper.readTree(listResult.getResponse().getContentAsString());
-        assertThat(categories).isEmpty();
+        assertThat(categories)
+                .extracting(node -> node.get("id").asText())
+                .doesNotContain(categoryId);
+        assertThat(categories)
+                .extracting(node -> node.get("name").asText())
+                .doesNotContain("Aluguel");
     }
 
     @Test

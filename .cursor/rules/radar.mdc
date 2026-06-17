@@ -1,0 +1,13 @@
+---
+description: Regras do FinanceDash Radar
+globs: ["src/**/*.java"]
+alwaysApply: true
+---
+
+- A IA/LLM NUNCA calcula valores monetários. Todo número vem do motor (radar.engine) via DTO.
+- Valores monetários sempre em BigDecimal (HALF_EVEN, 2 casas). Nunca double.
+- Toda query filtra por userId do usuário autenticado (multi-tenant). Testar isolamento.
+- Cada função do motor tem teste unitário cobrindo caminho feliz e bordas (mês vazio, dia 1, divisão por zero).
+- Respostas da IA terminam com: ação sugerida + premissas (assumptions do DTO) + "Sugestão, não consultoria financeira."
+- API REST versionada em /api/v1/**. DTOs separados das entidades. Erros no formato padrão do projeto.
+- Stack: Java 21, Spring Boot 3, Spring Data JPA, PostgreSQL, Spring AI. Seguir a arquitetura em 3 camadas: radar.engine, radar.rules, radar.ai.

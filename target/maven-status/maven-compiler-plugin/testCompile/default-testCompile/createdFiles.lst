@@ -1,6 +1,12 @@
+com\sanoli\financedash\domain\AppUserTest.class
+com\sanoli\financedash\config\RailwayDatabaseUrlEnvironmentPostProcessorTest.class
+com\sanoli\financedash\integration\TenantIsolationIntegrationTest.class
+com\sanoli\financedash\radar\engine\RadarEngineServiceTest.class
 com\sanoli\financedash\controller\TransactionControllerTest.class
 com\sanoli\financedash\controller\GoalControllerTest.class
 com\sanoli\financedash\service\DashboardServiceTest.class
+com\sanoli\financedash\service\BillingServiceTest.class
+com\sanoli\financedash\service\AuthServiceTest.class
+com\sanoli\financedash\service\TransactionServiceTest.class
 com\sanoli\financedash\service\GoalServiceTest.class
 com\sanoli\financedash\service\CategoryServiceTest.class
-com\sanoli\financedash\service\TransactionServiceTest.class

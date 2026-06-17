@@ -1,4 +1,6 @@
 const FinanceDashApp = (() => {
+    let initialized = false;
+
     function initPeriodControls() {
         const monthSelect = document.getElementById("month");
         const yearInput = document.getElementById("year");
@@ -26,6 +28,7 @@ const FinanceDashApp = (() => {
 
     async function refresh() {
         const { month, year } = getSelectedPeriod();
+        FinanceDashGoals.syncFormPeriod();
         await Promise.all([
             FinanceDashDashboard.load(month, year),
             FinanceDashTransactions.load(month, year),
@@ -34,22 +37,39 @@ const FinanceDashApp = (() => {
     }
 
     async function start() {
+        if (initialized) {
+            await refresh();
+            return;
+        }
+        initialized = true;
         initPeriodControls();
         FinanceDashTransactions.setDefaultDate();
-        FinanceDashCategories.bindEvents();
+        FinanceDashCategories.bindEvents(refresh);
         FinanceDashTransactions.bindEvents(refresh);
+        FinanceDashGoals.bindEvents(refresh, getSelectedPeriod);
+        FinanceDashDashboard.bindEvents();
         document.getElementById("reload-dashboard").addEventListener("click", async () => {
+            const button = document.getElementById("reload-dashboard");
             try {
+                FinanceDashUi.setButtonLoading(button, true, "Atualizando...");
                 await refresh();
                 FinanceDashUi.showToast("Dashboard atualizado.");
             } catch (error) {
                 FinanceDashUi.showToast(error.message);
+            } finally {
+                FinanceDashUi.setButtonLoading(button, false);
             }
         });
 
+        await refresh();
+    }
+
+    async function boot() {
         try {
-            await FinanceDashCategories.load();
-            await refresh();
+            await FinanceDashAuth.init(async () => {
+                await FinanceDashCategories.load();
+                await start();
+            });
         } catch (error) {
             FinanceDashUi.showToast(error.message);
             console.error(error);
@@ -57,9 +77,10 @@ const FinanceDashApp = (() => {
     }
 
     return {
-        start
+        start,
+        boot
     };
 })();
 
-document.addEventListener("DOMContentLoaded", FinanceDashApp.start);
+document.addEventListener("DOMContentLoaded", FinanceDashApp.boot);
 

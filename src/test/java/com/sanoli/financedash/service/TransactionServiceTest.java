@@ -48,6 +48,9 @@ class TransactionServiceTest {
     @Mock
     private CurrentUserService currentUserService;
 
+    @Mock
+    private com.sanoli.financedash.radar.rules.RadarRuleEngine radarRuleEngine;
+
     @InjectMocks
     private TransactionService transactionService;
 

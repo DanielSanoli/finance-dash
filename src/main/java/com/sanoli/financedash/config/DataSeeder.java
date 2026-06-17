@@ -37,8 +37,20 @@ public class DataSeeder {
                     });
             assignOrphanRecordsToUser(jdbcTemplate, demoUser.getId());
             ensureCategoryUniqueIndex(jdbcTemplate);
+            migrateRadarTransactionFields(jdbcTemplate);
             defaultCategoryService.seedForUser(demoUser);
         };
+    }
+
+    private void migrateRadarTransactionFields(JdbcTemplate jdbcTemplate) {
+        try {
+            jdbcTemplate.update("update transactions set status = 'PAID' where status is null");
+            jdbcTemplate.update("update transactions set recurrence_rule = 'NONE' where recurrence_rule is null");
+            jdbcTemplate.update("update transactions set recurring = false where recurring is null");
+            jdbcTemplate.update("update transactions set due_date = transaction_date where due_date is null");
+        } catch (Exception ignored) {
+            // Colunas podem não existir ainda no primeiro bootstrap antes do ddl-auto criar o schema.
+        }
     }
 
     private void assignOrphanRecordsToUser(JdbcTemplate jdbcTemplate, UUID userId) {

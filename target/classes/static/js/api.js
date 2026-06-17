@@ -203,6 +203,11 @@ const FinanceDashApi = (() => {
         askRadar: (question) => request("/api/v1/radar/ask", {
             method: "POST",
             body: JSON.stringify({ question })
+        }),
+        getUserSettings: () => request("/api/v1/user-settings"),
+        updateUserSettings: (payload) => request("/api/v1/user-settings", {
+            method: "PUT",
+            body: JSON.stringify(payload)
         })
     };
 })();
@@ -271,6 +276,54 @@ const FinanceDashUi = (() => {
         element.className = `feedback ${type}`.trim();
     }
 
+    function showModal(modal, options = {}) {
+        if (!modal) {
+            return;
+        }
+
+        const config = typeof options === "string" ? { focusSelector: options } : options;
+        const { focusSelector, onEscape } = config;
+
+        modal._previousFocus = document.activeElement;
+        modal.classList.add("show");
+        modal.setAttribute("aria-hidden", "false");
+
+        const focusTarget = focusSelector
+            ? modal.querySelector(focusSelector)
+            : modal.querySelector("input, select, textarea, button:not(.icon-button)");
+        focusTarget?.focus();
+
+        function onKeyDown(event) {
+            if (event.key === "Escape") {
+                if (onEscape) {
+                    onEscape();
+                    return;
+                }
+                hideModal(modal);
+            }
+        }
+
+        modal._modalKeyHandler = onKeyDown;
+        document.addEventListener("keydown", onKeyDown);
+    }
+
+    function hideModal(modal) {
+        if (!modal) {
+            return;
+        }
+
+        modal.classList.remove("show");
+        modal.setAttribute("aria-hidden", "true");
+
+        if (modal._modalKeyHandler) {
+            document.removeEventListener("keydown", modal._modalKeyHandler);
+            delete modal._modalKeyHandler;
+        }
+
+        modal._previousFocus?.focus();
+        delete modal._previousFocus;
+    }
+
     function confirmAction({ title, message, confirmText = "Confirmar", danger = false }) {
         const modal = document.getElementById("confirm-modal");
         const titleElement = document.getElementById("confirm-modal-title");
@@ -285,8 +338,7 @@ const FinanceDashUi = (() => {
 
         return new Promise((resolve) => {
             function close(result) {
-                modal.classList.remove("show");
-                modal.setAttribute("aria-hidden", "true");
+                hideModal(modal);
                 confirmButton.removeEventListener("click", onConfirm);
                 cancelButton.removeEventListener("click", onCancel);
                 modal.removeEventListener("click", onBackdrop);
@@ -310,8 +362,10 @@ const FinanceDashUi = (() => {
             confirmButton.addEventListener("click", onConfirm);
             cancelButton.addEventListener("click", onCancel);
             modal.addEventListener("click", onBackdrop);
-            modal.classList.add("show");
-            modal.setAttribute("aria-hidden", "false");
+            showModal(modal, {
+                focusSelector: "#confirm-modal-cancel",
+                onEscape: () => close(false)
+            });
         });
     }
 
@@ -323,7 +377,9 @@ const FinanceDashUi = (() => {
         escapeHtml,
         setButtonLoading,
         setFeedback,
+        showModal,
+        hideModal,
         confirmAction
     };
 })();
-
+

@@ -1,5 +1,6 @@
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\billing\AsaasClient.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\config\AsaasProperties.java
+C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\config\AsaasStartupValidator.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\config\AuthProperties.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\config\DataSeeder.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\config\MailProperties.java
@@ -62,6 +63,7 @@ C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\excep
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\exception\ErrorResponse.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\exception\GlobalExceptionHandler.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\exception\ResourceNotFoundException.java
+C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\exception\WebhookUnauthorizedException.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\FinanceDashApplication.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\radar\ai\RadarAnswerComposer.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\radar\ai\RadarCopilotService.java

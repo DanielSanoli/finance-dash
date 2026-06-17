@@ -39,6 +39,7 @@ com\sanoli\financedash\billing\AsaasClient$AsaasSubscriptionResult.class
 com\sanoli\financedash\service\GoalService.class
 com\sanoli\financedash\security\JwtService$1.class
 com\sanoli\financedash\dto\ForgotPasswordRequest.class
+com\sanoli\financedash\exception\WebhookUnauthorizedException.class
 com\sanoli\financedash\service\LoginRateLimiter$AttemptWindow.class
 com\sanoli\financedash\dto\RegisterRequest.class
 com\sanoli\financedash\radar\digest\RadarDigestSnapshot.class
@@ -98,6 +99,7 @@ com\sanoli\financedash\repository\UserSettingsRepository.class
 com\sanoli\financedash\radar\digest\RadarDigestService.class
 com\sanoli\financedash\dto\GoalRequest.class
 com\sanoli\financedash\dto\TransactionResponse.class
+com\sanoli\financedash\config\AsaasStartupValidator.class
 com\sanoli\financedash\radar\engine\OverdueReceivableItem.class
 com\sanoli\financedash\service\TransactionService.class
 com\sanoli\financedash\FinanceDashApplication.class

@@ -72,6 +72,11 @@ const FinanceDashApp = (() => {
         ]);
     }
 
+    function openFinancialProfile() {
+        setActiveView("dashboard");
+        document.getElementById("financial-profile-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
     async function refreshRadar() {
         await FinanceDashRadar.load();
     }
@@ -115,6 +120,11 @@ const FinanceDashApp = (() => {
         FinanceDashTransactions.bindEvents(refreshDashboard);
         FinanceDashGoals.bindEvents(refreshDashboard, getSelectedPeriod);
         FinanceDashDashboard.bindEvents();
+        FinanceDashSettings.bindEvents(async () => {
+            if (activeView === "radar") {
+                await refreshRadar();
+            }
+        });
         FinanceDashRadar.bindEvents(refreshRadar);
 
         document.getElementById("reload-dashboard").addEventListener("click", async () => {
@@ -137,6 +147,8 @@ const FinanceDashApp = (() => {
         try {
             await FinanceDashAuth.init(async () => {
                 await FinanceDashCategories.load();
+                const settings = await FinanceDashSettings.load();
+                FinanceDashSettings.fillForm(settings);
                 await start();
             });
         } catch (error) {
@@ -164,7 +176,8 @@ const FinanceDashApp = (() => {
 
     return {
         start,
-        boot
+        boot,
+        openFinancialProfile
     };
 })();
 

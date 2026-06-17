@@ -50,7 +50,7 @@ app:
     api-key: ${ASAAS_API_KEY:}
     base-url: ${ASAAS_BASE_URL:https://api-sandbox.asaas.com/v3}
     webhook-token: ${ASAAS_WEBHOOK_TOKEN:}
-    pro-plan-value: 29.90
+    pro-plan-value: ${ASAAS_PRO_PLAN_VALUE:29.90}
   mail:
     enabled: ${MAIL_ENABLED:false}
     from: ${MAIL_FROM:noreply@financedash.com}

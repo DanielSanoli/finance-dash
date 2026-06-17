@@ -1,638 +1,288 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinanceDash</title>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css?v=20260617-6">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FinanceDash — o copiloto financeiro do freelancer</title>
+<script>
+  // Porta de entrada: redireciona fluxos do app para /app.html
+  (function () {
+    try {
+      var p = new URLSearchParams(window.location.search);
+      if (p.has("reset") || p.has("verify")) {
+        window.location.replace("/app.html" + window.location.search);
+        return;
+      }
+      if (window.localStorage.getItem("financeDashToken")) {
+        window.location.replace("/app.html");
+      }
+    } catch (e) {}
+  })();
+</script>
+<style>
+  :root{
+    --bg:#0b1220; --card:#13203450; --line:#22344a; --text:#e8f1f8; --muted:#9fb3c8;
+    --accent:#38bdf8; --green:#22c55e; --violet:#a78bfa; --warn:#fbbf24;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.65}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 24px}
+  h1,h2,h3{line-height:1.2;margin:0;color:#fff;letter-spacing:-.4px}
+  a{color:inherit;text-decoration:none}
+  .btn{display:inline-block;background:linear-gradient(135deg,#0ea5e9,#06b6d4);color:#fff;font-weight:800;
+    padding:14px 26px;border-radius:12px;font-size:15px;box-shadow:0 10px 30px rgba(14,165,233,.35);transition:transform .15s,filter .15s;cursor:pointer;border:0}
+  .btn:hover{transform:translateY(-2px);filter:brightness(1.08)}
+  .btn.ghost{background:transparent;border:1px solid var(--line);box-shadow:none;color:var(--text)}
+  .btn.block{display:block;width:100%;text-align:center}
+  .muted{color:var(--muted)}
+
+  .nav{display:flex;justify-content:space-between;align-items:center;padding:20px 0}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px}
+  .logo .sq{width:18px;height:18px;border-radius:5px;background:linear-gradient(135deg,#38bdf8,#22c55e)}
+
+  .hero{position:relative;overflow:hidden;background:
+    radial-gradient(900px 380px at 80% -10%,rgba(56,189,248,.22),transparent 60%),
+    radial-gradient(700px 300px at 0% 10%,rgba(167,139,250,.16),transparent 55%)}
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center;padding:24px 0 70px}
+  .tag{display:inline-block;background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.35);
+    color:#bae6fd;border-radius:999px;padding:6px 14px;font-size:13px;font-weight:600;margin-bottom:18px}
+  .hero h1{font-size:44px;margin-bottom:16px}
+  .hero h1 .hl{background:linear-gradient(120deg,#38bdf8,#22d3ee);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p.sub{font-size:19px;color:var(--muted);max-width:540px;margin:0 0 22px}
+  .trust{font-size:13px;color:var(--muted);margin-top:14px}
+
+  /* signup card */
+  .signup{background:linear-gradient(160deg,#16263c,#0f1b2e);border:1px solid var(--line);border-radius:18px;
+    padding:26px;box-shadow:0 30px 60px rgba(0,0,0,.4)}
+  .signup h3{font-size:19px;margin-bottom:4px}
+  .signup p.s{color:var(--muted);font-size:13.5px;margin:0 0 16px}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px}
+  .field input{width:100%;background:#0c1626;border:1px solid var(--line);border-radius:10px;padding:11px 13px;
+    color:var(--text);font-size:14.5px}
+  .field input:focus{outline:none;border-color:var(--accent)}
+  .msg{font-size:13px;margin:8px 0 0;min-height:18px}
+  .msg.err{color:#fca5a5} .msg.ok{color:#86efac}
+  .login-line{font-size:13.5px;color:var(--muted);margin-top:14px;text-align:center}
+  .login-line a{color:var(--accent);font-weight:700}
+
+  section{padding:60px 0;border-top:1px solid var(--line)}
+  .kicker{color:var(--accent);font-weight:800;font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px}
+  h2.sec{font-size:30px;margin-bottom:10px}
+  .sec-lead{color:var(--muted);font-size:17px;max-width:680px}
+
+  .cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-top:30px}
+  .pcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px}
+  .pcard .ic{font-size:24px}.pcard h3{font-size:17px;margin:10px 0 6px}.pcard p{margin:0;color:var(--muted);font-size:14.5px}
+
+  .pain{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px}
+  .pain div{background:#1a1326;border:1px solid #3b2a4d;border-radius:12px;padding:16px;color:#f1d9ff;font-size:15px}
+  .pain div::before{content:"✕ ";color:#f472b6;font-weight:800}
+
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:30px;counter-reset:s}
+  .stp{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;position:relative}
+  .stp::before{counter-increment:s;content:counter(s);display:flex;width:34px;height:34px;border-radius:10px;
+    background:linear-gradient(135deg,#0ea5e9,#06b6d4);color:#fff;font-weight:800;align-items:center;justify-content:center;margin-bottom:12px}
+  .stp h3{font-size:16px;margin-bottom:5px}.stp p{margin:0;color:var(--muted);font-size:14px}
+
+  .show{background:linear-gradient(135deg,#1e1b4b,#312e81);border:1px solid #4338ca55;border-radius:20px;padding:30px;margin-top:30px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 18px}
+  .chip{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:7px 13px;font-size:13px;color:#dcd9ff}
+  .bub{max-width:80%;padding:13px 16px;border-radius:15px;font-size:14.5px;margin-bottom:10px;line-height:1.55}
+  .bub.u{margin-left:auto;background:linear-gradient(135deg,#0ea5e9,#06b6d4);color:#fff;border-bottom-right-radius:4px}
+  .bub.b{background:#111827;border:1px solid #2a3550;border-bottom-left-radius:4px}
+  .bub.b .d{display:block;margin-top:6px;color:#94a3b8;font-size:12px;font-style:italic}
+
+  .price-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:720px;margin:30px auto 0}
+  .plan{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px}
+  .plan.pro{border-color:var(--accent);box-shadow:0 14px 40px rgba(56,189,248,.18);position:relative}
+  .plan.pro .ribbon{position:absolute;top:-12px;right:18px;background:linear-gradient(135deg,#0ea5e9,#06b6d4);
+    color:#fff;font-size:12px;font-weight:800;padding:5px 12px;border-radius:999px}
+  .plan h3{font-size:18px}.plan .amt{font-size:36px;font-weight:800;margin:10px 0 2px;color:#fff}
+  .plan .amt small{font-size:15px;color:var(--muted);font-weight:600}
+  .plan ul{list-style:none;padding:0;margin:14px 0 20px}
+  .plan li{padding-left:24px;position:relative;margin:9px 0;font-size:14.5px}
+  .plan li::before{content:"✓";position:absolute;left:0;color:var(--green);font-weight:800}
+
+  .final{text-align:center;background:radial-gradient(700px 300px at 50% 0%,rgba(56,189,248,.18),transparent 60%)}
+  .final h2{font-size:32px;margin-bottom:12px}
+  footer{padding:30px 0 60px;text-align:center;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+  footer a{color:var(--accent)}
+  @media(max-width:880px){.hero-grid,.price-grid,.pain{grid-template-columns:1fr}.cols,.steps{grid-template-columns:1fr 1fr}.hero h1{font-size:33px}}
+</style>
 </head>
 <body>
-    <header class="app-header">
-        <div>
-            <p class="eyebrow">FinanceDash</p>
-            <h1 id="app-page-title">Dashboard financeiro</h1>
-            <p id="app-page-subtitle" class="subtitle">Controle receitas, despesas, categorias e metas em uma visão mensal.</p>
-        </div>
-        <div class="header-actions">
-            <div class="period-filter hidden" id="period-filter" aria-label="Filtro de período">
-                <label for="month">Mês</label>
-                <select id="month"></select>
-                <label for="year">Ano</label>
-                <input id="year" type="number" min="1900" max="2999">
-                <button id="reload-dashboard" type="button">Atualizar</button>
-            </div>
-            <div class="period-filter radar-period hidden" id="radar-period" aria-label="Período do Radar">
-                <span id="radar-period-label">Mês corrente</span>
-                <button id="reload-radar" class="button-secondary" type="button">Atualizar</button>
-            </div>
-            <div id="user-menu" class="user-menu hidden">
-                <span id="user-menu-name"></span>
-                <button id="account-button" class="button-secondary" type="button">Conta</button>
-                <button id="logout-button" class="button-secondary" type="button">Sair</button>
-            </div>
-        </div>
-    </header>
 
-    <section id="auth-section" class="auth-layout">
-        <article class="panel auth-card">
-            <p class="eyebrow">Acesso ao FinanceDash</p>
-            <h2>Entre ou crie sua conta</h2>
-            <p class="subtitle">Cada conta acessa apenas seus próprios lançamentos, categorias, metas e dashboard.</p>
-            <div class="auth-tabs">
-                <button id="login-tab" type="button">Login</button>
-                <button id="register-tab" class="button-secondary" type="button">Cadastro</button>
-            </div>
-            <form id="login-form" class="form auth-form">
-                <label class="full-width">
-                    Email
-                    <input name="email" type="email" value="demo@financedash.com" required>
-                </label>
-                <label class="full-width">
-                    Senha
-                    <input name="password" type="password" value="demo12345" required>
-                </label>
-                <button id="login-submit" type="submit">Entrar</button>
-                <button id="forgot-tab" class="link-button" type="button">Esqueci minha senha</button>
-                <p id="login-feedback" class="feedback" role="status"></p>
-            </form>
-            <form id="forgot-form" class="form auth-form hidden">
-                <label class="full-width">
-                    Email
-                    <input name="email" type="email" placeholder="voce@email.com" required>
-                </label>
-                <button id="forgot-submit" type="submit">Enviar link de recuperação</button>
-                <button id="forgot-back" class="link-button" type="button">Voltar ao login</button>
-                <p id="forgot-feedback" class="feedback" role="status"></p>
-            </form>
-            <form id="reset-form" class="form auth-form hidden">
-                <input id="reset-token" name="token" type="hidden">
-                <label class="full-width">
-                    Nova senha
-                    <input name="password" type="password" minlength="8" placeholder="Mínimo 8 caracteres" required>
-                </label>
-                <button id="reset-submit" type="submit">Redefinir senha</button>
-                <p id="reset-feedback" class="feedback" role="status"></p>
-            </form>
-            <form id="register-form" class="form auth-form hidden">
-                <label class="full-width">
-                    Nome
-                    <input name="name" type="text" placeholder="Seu nome" required>
-                </label>
-                <label class="full-width">
-                    Email
-                    <input name="email" type="email" placeholder="voce@email.com" required>
-                </label>
-                <label class="full-width">
-                    Senha
-                    <input name="password" type="password" minlength="8" placeholder="Mínimo 8 caracteres" required>
-                </label>
-                <button id="register-submit" type="submit">Criar conta</button>
-                <p id="register-feedback" class="feedback" role="status"></p>
-            </form>
-        </article>
-    </section>
-
-    <main id="app-content" class="layout hidden">
-        <section id="subscription-warning" class="subscription-warning hidden" role="alert">
-            <strong id="subscription-warning-title">Acesso bloqueado</strong>
-            <span id="subscription-warning-message">Atualize seu plano para voltar a usar o dashboard.</span>
-        </section>
-
-        <nav class="app-tabs" aria-label="Navegação principal">
-            <button class="tab active" type="button" data-app-view="dashboard">Dashboard</button>
-            <button class="tab" type="button" data-app-view="radar">Radar</button>
-        </nav>
-
-        <section id="account-panel" class="panel account-panel hidden">
-            <div class="panel-header">
-                <div>
-                    <h2>Conta e billing</h2>
-                    <span>Trial, assinatura Pro e status de acesso</span>
-                </div>
-                <div class="panel-header-actions">
-                    <span id="account-access-badge" class="account-badge">Acesso ativo</span>
-                    <button id="account-close-button" class="button-secondary account-close" type="button">Fechar</button>
-                </div>
-            </div>
-            <div class="account-grid">
-                <article class="account-item">
-                    <span>Usuário</span>
-                    <strong id="account-name">-</strong>
-                    <small id="account-email">-</small>
-                    <small id="account-email-verified">-</small>
-                </article>
-                <article class="account-item">
-                    <span>Plano</span>
-                    <strong id="account-plan">FREE</strong>
-                    <small id="account-status">Trial</small>
-                </article>
-                <article class="account-item">
-                    <span>Trial</span>
-                    <strong id="account-trial-days">0 dias</strong>
-                    <small id="account-trial-ends">Sem data</small>
-                </article>
-                <article class="account-item">
-                    <span>Assinatura</span>
-                    <strong id="account-subscription-status">TRIALING</strong>
-                    <small id="account-subscription-ends">Aguardando confirmação de pagamento</small>
-                </article>
-            </div>
-            <div class="account-actions">
-                <button id="checkout-pro-button" type="button">Assinar Pro</button>
-                <p id="checkout-feedback" class="feedback" role="status"></p>
-            </div>
-        </section>
-
-        <div id="dashboard-view" class="view-stack">
-        <section class="cards summary-cards" aria-label="Resumo mensal">
-            <article class="card income">
-                <span>Receitas</span>
-                <strong id="total-income">R$ 0,00</strong>
-                <small id="income-count">0 lançamentos</small>
-            </article>
-            <article class="card expense">
-                <span>Despesas</span>
-                <strong id="total-expense">R$ 0,00</strong>
-                <small id="expense-count">0 lançamentos</small>
-            </article>
-            <article class="card balance">
-                <span>Saldo</span>
-                <strong id="balance">R$ 0,00</strong>
-                <small id="transaction-count">0 lançamentos no mês</small>
-            </article>
-        </section>
-
-        <section class="insights-grid" aria-label="Insights do mês">
-            <article class="insight-card">
-                <span>Taxa de economia</span>
-                <strong id="savings-rate">0,00%</strong>
-                <small id="savings-rate-caption">Saldo em relação às receitas</small>
-            </article>
-            <article class="insight-card">
-                <span>Média por lançamento</span>
-                <strong id="average-transaction">R$ 0,00</strong>
-                <small>Receitas e despesas do mês</small>
-            </article>
-            <article class="insight-card">
-                <span>Maior despesa</span>
-                <strong id="top-expense-category">-</strong>
-                <small id="top-expense-amount">Sem despesas no período</small>
-            </article>
-            <article class="insight-card">
-                <span>Maior receita</span>
-                <strong id="top-income-category">-</strong>
-                <small id="top-income-amount">Sem receitas no período</small>
-            </article>
-        </section>
-
-        <section class="grid two-columns charts-grid">
-            <article class="panel chart-panel">
-                <div class="panel-header">
-                    <div>
-                        <h2>Despesas por categoria</h2>
-                        <span id="expense-period"></span>
-                    </div>
-                    <button class="button-secondary chart-expand" type="button" data-chart="expenses">Ampliar</button>
-                </div>
-                <div class="chart-shell">
-                    <canvas id="expenses-chart" height="150"></canvas>
-                </div>
-            </article>
-            <article class="panel chart-panel">
-                <div class="panel-header">
-                    <div>
-                        <h2>Receitas por categoria</h2>
-                        <span id="income-period"></span>
-                    </div>
-                    <button class="button-secondary chart-expand" type="button" data-chart="incomes">Ampliar</button>
-                </div>
-                <div class="chart-shell">
-                    <canvas id="incomes-chart" height="150"></canvas>
-                </div>
-            </article>
-        </section>
-
-        <section class="grid two-columns panel-row">
-            <article class="panel">
-                <div class="panel-header">
-                    <h2>Novo lançamento</h2>
-                    <span>Receita ou despesa</span>
-                </div>
-                <form id="transaction-form" class="form">
-                    <input id="transaction-id" name="transactionId" type="hidden">
-                    <label>
-                        Descrição
-                        <input name="description" type="text" placeholder="Ex.: Projeto website" required>
-                    </label>
-                    <label>
-                        Valor
-                        <input name="amount" type="number" min="0.01" step="0.01" placeholder="0.00" required>
-                    </label>
-                    <label>
-                        Tipo
-                        <select name="type" id="transaction-type" required>
-                            <option value="INCOME">Receita</option>
-                            <option value="EXPENSE">Despesa</option>
-                        </select>
-                    </label>
-                    <label>
-                        Categoria
-                        <select name="categoryId" id="transaction-category" required></select>
-                    </label>
-                    <label>
-                        Data
-                        <input name="transactionDate" type="date" required>
-                    </label>
-                    <label>
-                        Método de pagamento
-                        <input name="paymentMethod" type="text" placeholder="PIX, Cartão, Dinheiro">
-                    </label>
-                    <label class="full-width">
-                        Observações
-                        <textarea name="notes" rows="3" placeholder="Detalhes opcionais"></textarea>
-                    </label>
-                    <button id="transaction-submit" type="submit">Salvar lançamento</button>
-                    <p id="transaction-feedback" class="feedback" role="status"></p>
-                </form>
-            </article>
-
-            <article class="panel">
-                <div class="panel-header">
-                    <h2>Lançamentos recentes</h2>
-                    <span id="transactions-total">0 registros</span>
-                </div>
-                <form id="transaction-filters" class="filters" aria-label="Filtros de lançamentos">
-                    <label>
-                        Tipo
-                        <select id="transaction-filter-type" name="type">
-                            <option value="">Todos</option>
-                            <option value="INCOME">Receitas</option>
-                            <option value="EXPENSE">Despesas</option>
-                        </select>
-                    </label>
-                    <label>
-                        Categoria
-                        <select id="transaction-filter-category" name="categoryId"></select>
-                    </label>
-                    <label>
-                        Registros
-                        <select name="size">
-                            <option value="10">10</option>
-                            <option value="20">20</option>
-                            <option value="50">50</option>
-                        </select>
-                    </label>
-                    <label>
-                        Ordenar
-                        <select name="sort">
-                            <option value="transactionDate,desc">Mais recentes</option>
-                            <option value="transactionDate,asc">Mais antigos</option>
-                            <option value="amount,desc">Maior valor</option>
-                            <option value="amount,asc">Menor valor</option>
-                        </select>
-                    </label>
-                    <div class="filter-actions">
-                        <button type="submit">Aplicar filtros</button>
-                        <button id="transaction-filters-reset" class="button-secondary" type="button">Limpar</button>
-                    </div>
-                </form>
-                <div class="table-wrapper">
-                    <table class="transactions-table">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Descrição</th>
-                                <th>Categoria</th>
-                                <th>Tipo</th>
-                                <th>Valor</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="transactions-table"></tbody>
-                    </table>
-                </div>
-            </article>
-        </section>
-
-        <section class="grid two-columns panel-row">
-            <article class="panel">
-                <div class="panel-header">
-                    <h2>Categorias</h2>
-                    <span>Organize receitas e despesas</span>
-                </div>
-                <form id="category-form" class="form compact-form">
-                    <input id="category-id" name="categoryId" type="hidden">
-                    <label>
-                        Nome
-                        <input name="name" type="text" placeholder="Ex.: Assinaturas" required>
-                    </label>
-                    <label>
-                        Tipo
-                        <select name="type" required>
-                            <option value="INCOME">Receita</option>
-                            <option value="EXPENSE">Despesa</option>
-                        </select>
-                    </label>
-                    <label>
-                        Cor
-                        <input name="color" type="color" value="#38bdf8" required>
-                    </label>
-                    <button id="category-submit" type="submit">Salvar categoria</button>
-                    <button id="category-cancel" class="button-secondary hidden" type="button">Cancelar edição</button>
-                    <p id="category-feedback" class="feedback" role="status"></p>
-                </form>
-                <div id="categories-list" class="stack-list"></div>
-            </article>
-
-            <article class="panel">
-                <div class="panel-header">
-                    <h2>Nova meta</h2>
-                    <span>Receita, despesa ou economia</span>
-                </div>
-                <form id="goal-form" class="form compact-form">
-                    <input id="goal-id" name="goalId" type="hidden">
-                    <label class="full-width">
-                        Título
-                        <input name="title" type="text" placeholder="Ex.: Economizar para reserva" required>
-                    </label>
-                    <label>
-                        Mês
-                        <input name="month" type="number" min="1" max="12" required>
-                    </label>
-                    <label>
-                        Ano
-                        <input name="year" type="number" min="1900" max="2999" required>
-                    </label>
-                    <label>
-                        Valor alvo
-                        <input name="targetAmount" type="number" min="0.01" step="0.01" placeholder="0.00" required>
-                    </label>
-                    <label>
-                        Tipo
-                        <select id="goal-type" name="type" required>
-                            <option value="SAVINGS_TARGET">Economia</option>
-                            <option value="INCOME_TARGET">Meta de receita</option>
-                            <option value="EXPENSE_LIMIT">Limite de despesa</option>
-                        </select>
-                    </label>
-                    <label class="full-width">
-                        Categoria
-                        <select id="goal-category" name="categoryId"></select>
-                    </label>
-                    <button id="goal-submit" type="submit">Salvar meta</button>
-                    <button id="goal-cancel" class="button-secondary hidden" type="button">Cancelar edição</button>
-                    <p id="goal-feedback" class="feedback" role="status"></p>
-                </form>
-            </article>
-        </section>
-
-        <section class="panel">
-            <div class="panel-header">
-                <h2>Metas do mês</h2>
-                <span>Progresso calculado automaticamente</span>
-            </div>
-            <div id="goals-list" class="goals-list"></div>
-        </section>
-        </div>
-
-        <div id="radar-view" class="hidden view-stack" aria-label="Radar financeiro">
-            <section class="panel radar-hero-panel pos" id="radar-hero-panel">
-                <div class="panel-header">
-                    <div>
-                        <h2>Seu mês</h2>
-                        <span>Projeção do mês corrente</span>
-                    </div>
-                </div>
-                <div class="radar-hero">
-                    <div class="hero-main">
-                        <p class="hero-label">Saldo projetado no fim do mês</p>
-                        <div id="radar-projected-balance" class="hero-value pos">-</div>
-                        <span id="radar-projection-badge" class="status-badge pos">Carregando...</span>
-                        <details class="assumptions">
-                            <summary>Ver premissas</summary>
-                            <ul id="radar-projection-assumptions"></ul>
-                        </details>
-                    </div>
-                    <div class="gauge">
-                        <div class="gauge-stats">
-                            <div class="gauge-stat">
-                                <span>Saldo atual</span>
-                                <strong id="radar-current-balance">-</strong>
-                            </div>
-                            <div class="gauge-stat">
-                                <span>Meta do mês</span>
-                                <strong id="radar-month-goal">-</strong>
-                            </div>
-                            <div class="gauge-stat">
-                                <span>Reserva alvo</span>
-                                <strong id="radar-reserve-target">-</strong>
-                            </div>
-                            <div class="gauge-stat accent">
-                                <span>Pode gastar</span>
-                                <strong id="radar-gauge-safe">-</strong>
-                            </div>
-                        </div>
-                        <div class="gauge-bar" id="radar-gauge-bar-wrap" hidden>
-                            <div class="gauge-bar-fill" id="radar-gauge-bar"></div>
-                        </div>
-                        <small id="radar-gauge-caption" class="gauge-caption">Carregando projeção...</small>
-                    </div>
-                </div>
-            </section>
-
-            <section class="cards radar-cards" aria-label="Indicadores do Radar">
-                <article class="card safe metric-card">
-                    <span class="metric-icon" aria-hidden="true">✓</span>
-                    <span>Pode gastar com segurança</span>
-                    <strong id="radar-safe-total">-</strong>
-                    <small id="radar-safe-caption">-</small>
-                </article>
-                <article class="card blocked metric-card">
-                    <span class="metric-icon" aria-hidden="true">!</span>
-                    <span>Caixa travado (atrasados)</span>
-                    <strong id="radar-blocked-total">-</strong>
-                    <small id="radar-blocked-caption">-</small>
-                </article>
-                <article class="card freela metric-card">
-                    <span class="metric-icon" aria-hidden="true">◎</span>
-                    <span>Precisa de mais um freela?</span>
-                    <strong id="radar-freela-answer">-</strong>
-                    <small id="radar-freela-caption">-</small>
-                </article>
-            </section>
-
-            <section class="panel">
-                <div class="panel-header">
-                    <div>
-                        <h2>Alertas do Radar</h2>
-                        <span>Gerados pelo motor de regras</span>
-                    </div>
-                    <span id="radar-alerts-count" class="muted-label">0 ativo(s)</span>
-                </div>
-                <div id="radar-alerts-list"></div>
-            </section>
-
-            <section class="panel">
-                <div class="panel-header">
-                    <div>
-                        <h2>Quem está travando seu caixa</h2>
-                        <span>Recebíveis vencidos</span>
-                    </div>
-                </div>
-                <div class="table-wrapper">
-                    <table class="radar-table">
-                        <thead>
-                            <tr>
-                                <th>Cliente</th>
-                                <th class="num">Valor</th>
-                                <th class="num">Atraso</th>
-                                <th class="num">Impacto</th>
-                            </tr>
-                        </thead>
-                        <tbody id="radar-overdue-body"></tbody>
-                    </table>
-                </div>
-            </section>
-
-            <section class="grid two-columns panel-row radar-tools">
-                <article class="panel mini">
-                    <h3>Preço mínimo do próximo projeto</h3>
-                    <p>Piso por hora: <strong id="radar-min-hourly-rate">-</strong></p>
-                    <div class="inline-input">
-                        <input id="radar-min-price-hours" type="number" value="20" min="1" step="1" aria-label="Horas estimadas">
-                        <button id="radar-min-price-calc" type="button">Calcular</button>
-                    </div>
-                    <p class="mini-result">Para as horas informadas: <span class="big" id="radar-min-price-output">-</span></p>
-                    <small id="radar-min-price-footnote" class="mini-footnote">Valores calculados pelo motor do Radar.</small>
-                </article>
-                <article class="panel mini">
-                    <h3>O que cortar para bater a meta</h3>
-                    <p>Saldo projetado: <strong id="radar-cut-gap">-</strong></p>
-                    <p class="mini-subtitle" id="radar-cut-after">-</p>
-                    <table class="radar-table compact">
-                        <tbody id="radar-cut-body"></tbody>
-                    </table>
-                    <small id="radar-cut-footnote" class="mini-footnote">-</small>
-                </article>
-            </section>
-
-            <section class="panel">
-                <div class="panel-header">
-                    <div>
-                        <h2>Pergunte ao Radar</h2>
-                        <span>Copiloto financeiro</span>
-                    </div>
-                </div>
-                <div class="chat">
-                    <div class="chips" id="radar-chips"></div>
-                    <div class="stream" id="radar-chat-stream">
-                        <div class="msg bot">
-                            Oi! Sou o seu Radar. Pergunte sobre seu mês — ou toque numa das sugestões acima.
-                            <span class="disc">Sugestão, não consultoria financeira.</span>
-                        </div>
-                    </div>
-                    <div class="composer">
-                        <input id="radar-ask-input" type="text" placeholder="Ex.: Quanto posso gastar até o fim do mês?" aria-label="Pergunta ao Radar">
-                        <button id="radar-ask-send" type="button">Enviar</button>
-                    </div>
-                </div>
-            </section>
-        </div>
-    </main>
-
-    <div id="toast" class="toast" role="status" aria-live="polite"></div>
-    <div id="confirm-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title">
-        <div class="modal-card">
-            <h2 id="confirm-modal-title">Confirmar ação</h2>
-            <p id="confirm-modal-message" class="subtitle"></p>
-            <div class="modal-actions">
-                <button id="confirm-modal-cancel" class="button-secondary" type="button">Cancelar</button>
-                <button id="confirm-modal-confirm" type="button">Confirmar</button>
-            </div>
-        </div>
+<header class="hero">
+  <div class="wrap">
+    <div class="nav">
+      <div class="logo"><span class="sq"></span> FinanceDash</div>
+      <a href="/app.html" class="btn ghost">Entrar</a>
     </div>
-    <div id="transaction-edit-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="transaction-edit-title">
-        <div class="modal-card wide">
-            <div class="modal-header">
-                <div>
-                    <h2 id="transaction-edit-title">Editar lançamento</h2>
-                    <p class="subtitle">Atualize os dados sem sair da tabela de lançamentos.</p>
-                </div>
-                <button id="transaction-edit-close" class="icon-button" type="button" aria-label="Fechar modal">×</button>
-            </div>
-            <form id="transaction-edit-form" class="form modal-form">
-                <input name="transactionId" type="hidden">
-                <label>
-                    Descrição
-                    <input name="description" type="text" required>
-                </label>
-                <label>
-                    Valor
-                    <input name="amount" type="number" min="0.01" step="0.01" required>
-                </label>
-                <label>
-                    Tipo
-                    <select name="type" id="transaction-edit-type" required>
-                        <option value="INCOME">Receita</option>
-                        <option value="EXPENSE">Despesa</option>
-                    </select>
-                </label>
-                <label>
-                    Categoria
-                    <select name="categoryId" id="transaction-edit-category" required></select>
-                </label>
-                <label>
-                    Data
-                    <input name="transactionDate" type="date" required>
-                </label>
-                <label>
-                    Método de pagamento
-                    <input name="paymentMethod" type="text">
-                </label>
-                <label class="full-width">
-                    Observações
-                    <textarea name="notes" rows="3"></textarea>
-                </label>
-                <div class="form-actions">
-                    <button id="transaction-edit-cancel" class="button-secondary" type="button">Cancelar</button>
-                    <button id="transaction-edit-submit" type="submit">Salvar edição</button>
-                </div>
-                <p id="transaction-edit-feedback" class="feedback" role="status"></p>
-            </form>
-        </div>
-    </div>
-    <div id="chart-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="chart-modal-title">
-        <div class="modal-card chart-modal-card">
-            <div class="modal-header">
-                <div>
-                    <h2 id="chart-modal-title">Gráfico ampliado</h2>
-                    <p id="chart-modal-subtitle" class="subtitle"></p>
-                </div>
-                <button id="chart-modal-close" class="icon-button" type="button" aria-label="Fechar gráfico ampliado">×</button>
-            </div>
-            <div class="expanded-chart-shell">
-                <canvas id="expanded-chart" height="360"></canvas>
-            </div>
-        </div>
-    </div>
+    <div class="hero-grid">
+      <div>
+        <span class="tag">🤖 Com copiloto financeiro de IA</span>
+        <h1>Saiba <span class="hl">hoje</span> se você vai fechar o mês no azul.</h1>
+        <p class="sub">O controle financeiro do freelancer e do MEI que não só mostra números — ele projeta o seu mês, avisa riscos e te diz o que fazer.</p>
+        <p class="trust">✓ 14 dias grátis &nbsp; ✓ Sem cartão para começar &nbsp; ✓ Cancele quando quiser</p>
+      </div>
 
-    <footer class="app-footer">
-        <a href="/privacy.html">Política de privacidade</a>
-    </footer>
+      <div class="signup" id="cadastro">
+        <h3>Crie sua conta grátis</h3>
+        <p class="s">Comece a usar o Radar em menos de um minuto.</p>
+        <form id="signup-form" novalidate>
+          <div class="field">
+            <label for="su-name">Nome</label>
+            <input id="su-name" name="name" type="text" placeholder="Seu nome" required />
+          </div>
+          <div class="field">
+            <label for="su-email">E-mail</label>
+            <input id="su-email" name="email" type="email" placeholder="voce@email.com" required />
+          </div>
+          <div class="field">
+            <label for="su-pass">Senha</label>
+            <input id="su-pass" name="password" type="password" placeholder="Mínimo 8 caracteres" minlength="8" required />
+          </div>
+          <button class="btn block" type="submit" id="su-submit">Criar conta grátis →</button>
+          <p class="msg" id="su-msg" role="status"></p>
+        </form>
+        <p class="login-line">Já tem conta? <a href="/app.html">Entrar</a></p>
+      </div>
+    </div>
+  </div>
+</header>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <script src="js/api.js?v=20260617-6"></script>
-    <script src="js/auth.js?v=20260617-6"></script>
-    <script src="js/categories.js?v=20260617-6"></script>
-    <script src="js/dashboard.js?v=20260617-6"></script>
-    <script src="js/transactions.js?v=20260617-6"></script>
-    <script src="js/goals.js?v=20260617-6"></script>
-    <script src="js/radar.js?v=20260617-6"></script>
-    <script src="js/app.js?v=20260617-6"></script>
+<section>
+  <div class="wrap">
+    <div class="kicker">O problema</div>
+    <h2 class="sec">Renda variável é estressante quando você decide no escuro</h2>
+    <p class="sec-lead">Quem trabalha por conta sente na pele: o dinheiro entra desencontrado, e fica difícil saber o que pode gastar.</p>
+    <div class="pain">
+      <div>Descobrir que o mês fechou no vermelho quando já é tarde.</div>
+      <div>Não saber quanto pode gastar sem furar a reserva.</div>
+      <div>Esquecer qual cliente está devendo — e há quanto tempo.</div>
+      <div>Chutar o preço do próximo projeto e sair no prejuízo.</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">A solução</div>
+    <h2 class="sec">Controle simples + um copiloto que pensa com você</h2>
+    <p class="sec-lead">Registre receitas e despesas como em qualquer app. A diferença é o Radar trabalhando nos bastidores.</p>
+    <div class="cols">
+      <div class="pcard"><div class="ic">🔮</div><h3>Projeção do mês</h3><p>“No ritmo atual, vou fechar positivo?” — respondido na hora.</p></div>
+      <div class="pcard"><div class="ic">💸</div><h3>Quanto posso gastar</h3><p>Um valor seguro por dia, já preservando a sua reserva.</p></div>
+      <div class="pcard"><div class="ic">⏰</div><h3>Quem te deve</h3><p>Recebíveis atrasados e quanto de caixa estão travando.</p></div>
+      <div class="pcard"><div class="ic">🔔</div><h3>Alertas automáticos</h3><p>Mês no vermelho, meta em risco, cliente atrasado — antes de virar problema.</p></div>
+      <div class="pcard"><div class="ic">🏷️</div><h3>Preço mínimo</h3><p>Quanto cobrar no próximo projeto para não trabalhar no prejuízo.</p></div>
+      <div class="pcard"><div class="ic">📊</div><h3>Dashboard e metas</h3><p>Saldo, gráficos por categoria e metas com progresso automático.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Como funciona</div>
+    <h2 class="sec">Do cadastro à clareza em minutos</h2>
+    <div class="steps">
+      <div class="stp"><h3>Crie sua conta</h3><p>Grátis, em menos de um minuto.</p></div>
+      <div class="stp"><h3>Configure seu perfil</h3><p>Reserva, custo fixo e meta — uma vez só.</p></div>
+      <div class="stp"><h3>Registre os lançamentos</h3><p>Inclusive recebíveis a receber, com vencimento.</p></div>
+      <div class="stp"><h3>Pergunte ao Radar</h3><p>E receba a resposta com a ação certa.</p></div>
+    </div>
+    <div class="show">
+      <div class="kicker" style="color:#c4b5fd">Pergunte ao Radar</div>
+      <h3 style="margin-bottom:6px">Fale como você pensa</h3>
+      <div class="chips">
+        <span class="chip">Vou fechar o mês positivo?</span>
+        <span class="chip">Quanto posso gastar?</span>
+        <span class="chip">Qual cliente está me atrasando?</span>
+        <span class="chip">Quanto cobrar no próximo projeto?</span>
+      </div>
+      <div class="bub u">Quanto posso gastar até o fim do mês?</div>
+      <div class="bub b">Você pode gastar com segurança <b>R$ 540,00</b> — cerca de <b>R$ 38/dia</b> nos próximos 14 dias, preservando sua reserva. <b>Ação:</b> segure gastos variáveis nas próximas semanas.<span class="d">Sugestão, não consultoria financeira.</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="planos">
+  <div class="wrap">
+    <div class="kicker" style="text-align:center">Planos</div>
+    <h2 class="sec" style="text-align:center">Comece grátis. Assine quando fizer sentido.</h2>
+    <div class="price-grid">
+      <div class="plan">
+        <h3>Teste grátis</h3>
+        <div class="amt">R$ 0 <small>/ 14 dias</small></div>
+        <p class="muted">Acesso completo para experimentar.</p>
+        <ul><li>Controle de receitas e despesas</li><li>Dashboard e metas</li><li>Radar completo durante o teste</li><li>Sem cartão para começar</li></ul>
+        <button class="btn ghost block" type="button" onclick="goSignup()">Criar conta grátis</button>
+      </div>
+      <div class="plan pro">
+        <span class="ribbon">Mais popular</span>
+        <h3>Pro</h3>
+        <div class="amt">R$ 29 <small>/ mês</small></div>
+        <p class="muted">Para quem quer o Radar sempre ligado.</p>
+        <ul><li>Tudo do teste, sem limite de tempo</li><li>Projeções, alertas e copiloto ilimitados</li><li>Resumo proativo por e-mail</li><li>Cancele quando quiser</li></ul>
+        <button class="btn block" type="button" onclick="goSignup()">Começar agora</button>
+      </div>
+    </div>
+    <p style="text-align:center;color:var(--muted);font-size:13px;margin-top:16px">Crie sua conta grátis e assine o Pro dentro do app quando quiser. Pagamento seguro via Pix, boleto ou cartão.</p>
+  </div>
+</section>
+
+<section class="final">
+  <div class="wrap">
+    <h2>Pare de decidir no escuro.</h2>
+    <p class="sec-lead" style="margin:0 auto 24px">Deixe o Radar te dizer, todo dia, se o seu mês está no rumo certo.</p>
+    <button class="btn" type="button" onclick="goSignup()">Criar conta grátis agora</button>
+  </div>
+</section>
+
+<footer>
+  FinanceDash — o copiloto financeiro do freelancer e do MEI · <a href="/privacy.html">Política de Privacidade</a><br/>
+  As respostas do Radar são sugestões, não consultoria financeira.
+</footer>
+
+<script>
+  function goSignup(){
+    document.getElementById("cadastro").scrollIntoView({behavior:"smooth",block:"center"});
+    setTimeout(function(){ document.getElementById("su-name").focus(); }, 400);
+  }
+  (function(){
+    var form = document.getElementById("signup-form");
+    var msg = document.getElementById("su-msg");
+    var btn = document.getElementById("su-submit");
+    function show(text, ok){ msg.textContent = text; msg.className = "msg " + (ok ? "ok" : "err"); }
+    form.addEventListener("submit", async function(e){
+      e.preventDefault();
+      var name = document.getElementById("su-name").value.trim();
+      var email = document.getElementById("su-email").value.trim();
+      var password = document.getElementById("su-pass").value;
+      if(!name || !email || password.length < 8){ show("Preencha nome, e-mail e uma senha de pelo menos 8 caracteres.", false); return; }
+      btn.disabled = true; var original = btn.textContent; btn.textContent = "Criando conta...";
+      show("", true);
+      try{
+        var r = await fetch("/api/v1/auth/register", {
+          method:"POST", headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({ name: name, email: email, password: password })
+        });
+        var data = {};
+        try { data = await r.json(); } catch(_) {}
+        if(!r.ok){ show((data && data.message) || "Não foi possível criar a conta.", false); btn.disabled=false; btn.textContent=original; return; }
+        window.localStorage.setItem("financeDashToken", data.token);
+        if(data.refreshToken){ window.localStorage.setItem("financeDashRefreshToken", data.refreshToken); }
+        show("Conta criada! Entrando...", true);
+        window.location.assign("/app.html");
+      }catch(err){
+        show("Erro de conexão. Tente novamente.", false);
+        btn.disabled=false; btn.textContent=original;
+      }
+    });
+  })();
+</script>
 </body>
 </html>
-

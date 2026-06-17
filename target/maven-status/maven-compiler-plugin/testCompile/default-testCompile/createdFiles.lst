@@ -13,3 +13,4 @@ com\sanoli\financedash\service\TransactionServiceTest.class
 com\sanoli\financedash\radar\ai\RadarCopilotServiceTest.class
 com\sanoli\financedash\service\GoalServiceTest.class
 com\sanoli\financedash\service\CategoryServiceTest.class
+com\sanoli\financedash\config\AsaasStartupValidatorTest.class

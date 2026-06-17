@@ -8,6 +8,7 @@ import com.sanoli.financedash.domain.SubscriptionPlan;
 import com.sanoli.financedash.domain.SubscriptionStatus;
 import com.sanoli.financedash.dto.CheckoutResponse;
 import com.sanoli.financedash.exception.BusinessException;
+import com.sanoli.financedash.exception.WebhookUnauthorizedException;
 import com.sanoli.financedash.repository.UserRepository;
 import com.sanoli.financedash.security.CurrentUserService;
 import org.springframework.stereotype.Service;
@@ -59,8 +60,6 @@ public class BillingService {
                 asaasProperties.getProPlanValue()
         );
         user.setAsaasSubscriptionId(subscription.subscriptionId());
-        user.setPlan(SubscriptionPlan.PRO);
-        user.setSubscriptionStatus(SubscriptionStatus.PAST_DUE);
         userRepository.save(user);
 
         return new CheckoutResponse(
@@ -76,11 +75,7 @@ public class BillingService {
             return;
         }
 
-        if (asaasProperties.getWebhookToken() != null
-                && !asaasProperties.getWebhookToken().isBlank()
-                && !asaasProperties.getWebhookToken().equals(accessToken)) {
-            throw new BusinessException("Webhook Asaas inválido");
-        }
+        validateWebhookToken(accessToken);
 
         String event = payload.path("event").asText("");
         JsonNode payment = payload.path("payment");
@@ -92,24 +87,56 @@ public class BillingService {
         AppUser user = userRepository.findByAsaasSubscriptionId(subscriptionId)
                 .orElseThrow(() -> new BusinessException("Assinatura não encontrada"));
 
-        switch (event) {
+        boolean changed = switch (event) {
             case "PAYMENT_CONFIRMED", "PAYMENT_RECEIVED" -> activateSubscription(user);
-            case "PAYMENT_OVERDUE" -> user.setSubscriptionStatus(SubscriptionStatus.PAST_DUE);
-            case "PAYMENT_DELETED", "SUBSCRIPTION_DELETED" -> {
-                user.setSubscriptionStatus(SubscriptionStatus.CANCELED);
-                user.setPlan(SubscriptionPlan.FREE);
-            }
-            default -> {
-                return;
-            }
-        }
+            case "PAYMENT_OVERDUE" -> applyPastDue(user);
+            case "PAYMENT_DELETED", "SUBSCRIPTION_DELETED" -> cancelSubscription(user);
+            default -> false;
+        };
 
-        userRepository.save(user);
+        if (changed) {
+            userRepository.save(user);
+        }
     }
 
-    private void activateSubscription(AppUser user) {
+    private void validateWebhookToken(String accessToken) {
+        String expectedToken = asaasProperties.getWebhookToken();
+        if (expectedToken == null || expectedToken.isBlank()) {
+            throw new WebhookUnauthorizedException("Webhook Asaas não configurado");
+        }
+
+        if (accessToken == null || !expectedToken.equals(accessToken)) {
+            throw new WebhookUnauthorizedException("Webhook Asaas inválido");
+        }
+    }
+
+    private boolean activateSubscription(AppUser user) {
+        if (user.getPlan() == SubscriptionPlan.PRO && user.getSubscriptionStatus() == SubscriptionStatus.ACTIVE) {
+            return false;
+        }
+
         user.setPlan(SubscriptionPlan.PRO);
         user.setSubscriptionStatus(SubscriptionStatus.ACTIVE);
         user.setSubscriptionEndsAt(LocalDateTime.now().plusMonths(1));
+        return true;
+    }
+
+    private boolean applyPastDue(AppUser user) {
+        if (user.getSubscriptionStatus() == SubscriptionStatus.PAST_DUE) {
+            return false;
+        }
+
+        user.setSubscriptionStatus(SubscriptionStatus.PAST_DUE);
+        return true;
+    }
+
+    private boolean cancelSubscription(AppUser user) {
+        if (user.getPlan() == SubscriptionPlan.FREE && user.getSubscriptionStatus() == SubscriptionStatus.CANCELED) {
+            return false;
+        }
+
+        user.setSubscriptionStatus(SubscriptionStatus.CANCELED);
+        user.setPlan(SubscriptionPlan.FREE);
+        return true;
     }
 }

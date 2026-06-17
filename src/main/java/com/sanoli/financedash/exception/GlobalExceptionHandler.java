@@ -55,6 +55,11 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", exception.getMessage(), request.getRequestURI());
     }
 
+    @ExceptionHandler(WebhookUnauthorizedException.class)
+    public ResponseEntity<ErrorResponse> handleWebhookUnauthorized(WebhookUnauthorizedException exception, HttpServletRequest request) {
+        return buildResponse(HttpStatus.FORBIDDEN, "WEBHOOK_UNAUTHORIZED", exception.getMessage(), request.getRequestURI());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception exception, HttpServletRequest request) {
         if (isSensitiveAuthPath(request.getRequestURI())) {

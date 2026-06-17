@@ -110,6 +110,7 @@ C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\servi
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\service\GoalService.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\service\LoggingEmailService.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\service\LoginRateLimiter.java
+C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\service\ResendEmailService.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\service\SmtpEmailService.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\service\TokenService.java
 C:\Users\Daniel\projetos\finance-dash\src\main\java\com\sanoli\financedash\service\TransactionService.java
